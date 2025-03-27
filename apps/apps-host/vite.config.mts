@@ -19,6 +19,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@sudoku': fileURLToPath(new URL('../../libs/sudoku', import.meta.url)),
+      '@minesweeper': fileURLToPath(new URL('../../libs/coop-minesweeper', import.meta.url)),
     },
     extensions: [
       '.js',

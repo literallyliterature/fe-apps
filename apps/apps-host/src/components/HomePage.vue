@@ -7,29 +7,33 @@
         align-content="center"
         class="fill-height"
         justify="center">
-        <v-col cols="12" sm="6">
-          <v-card
-            class="py-4"
-            color="pink-lighten-1"
-            href="/sudoku"
-            prepend-icon="mdi-grid"
-            rel="noopener noreferrer"
-            rounded="lg"
-            target="_self"
-            title="Sudoku" />
+        <v-col cols="12">
+          <router-link to="/">
+            <v-img
+              class="mb-4"
+              height="150"
+              src="@/assets/logo.png" />
+          </router-link>
         </v-col>
 
         <v-col cols="12" sm="6">
           <v-card
+            append-icon="fas fa-th"
             class="py-4"
             color="pink-lighten-1"
-            href="/coop-minesweeper"
-            prepend-icon="mdi-grid"
-            rel="noopener noreferrer"
             rounded="lg"
-            target="_self"
-            max-width="100%"
-            title="Minesweeper" />
+            title="Sudoku"
+            to="/sudoku" />
+        </v-col>
+
+        <v-col cols="12" sm="6">
+          <v-card
+            append-icon="fas fa-bomb"
+            class="py-4"
+            color="pink-lighten-1"
+            rounded="lg"
+            title="Minesweeper"
+            to="/minesweeper" />
         </v-col>
       </v-row>
     </v-responsive>
