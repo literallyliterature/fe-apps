@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "description": "A lib for a sudoku game",
   "type": "module",
-  "scripts": {}
+  "scripts": {},
+  "dependencies": {
+    "sudoku-gen": "^1.0.2"
+  }
 }
