@@ -1,0 +1,7 @@
+{
+  "name": "coop-minesweeper",
+  "version": "1.0.0",
+  "description": "A lib for a cooperative minesweeper game",
+  "type": "module",
+  "scripts": {}
+}
