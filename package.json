@@ -1,9 +1,33 @@
 {
   "name": "fe-apps",
+  "private": true,
   "version": "1.0.0",
   "description": "A monorepo for personal projects",
-  "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "dev": "npm run dev --workspace apps/apps-host"
+  },
   "author": "Sahitya Beri <sahityaberi@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "dependencies": {
+    "vue": "^3.5.13",
+    "vuetify": "^3.7.19"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@tsconfig/node22": "^22.0.0",
+    "@types/node": "^22.9.0",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/eslint-config-typescript": "^14.5.0",
+    "@vue/tsconfig": "^0.7.0",
+    "sass": "^1.86.0",
+    "sass-embedded": "^1.86.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.3",
+    "vite-plugin-vuetify": "^2.1.0",
+    "vue-tsc": "^2.2.8"
+  }
 }
