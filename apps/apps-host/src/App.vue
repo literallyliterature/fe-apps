@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style="{ background: $route.path === '/minesweeper' ? '#1d1d1d' : '' }">
     <v-app-bar
       v-if="$route.path !== '/'"
       app
@@ -12,14 +12,21 @@
     </v-app-bar>
 
     <v-main>
-      <v-container class="fill-height">
-
+      <v-container
+        v-if="$route.path !== '/minesweeper'"
+        class="fill-height">
         <v-responsive
           class="fill-height mx-auto"
           max-width="900">
           <router-view />
         </v-responsive>
       </v-container>
+
+      <div v-else style="overflow: scroll; height: 80vh; width: 100vw">
+        <div class="pa-8">
+          <router-view />
+        </div>
+      </div>
     </v-main>
   </v-app>
 </template>
