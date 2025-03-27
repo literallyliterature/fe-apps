@@ -1,10 +1,10 @@
 <template>
   <v-row justify="center" no-gutters style="max-width: 400px; margin: auto">
     <v-col v-if="game && (gameStatus === 'started' || gameStatus === 'completed')" cols="auto">
-      <div style="border: 1px solid rgba(0, 0, 0, 0.2)">
+      <div style="margin: 1px">
         <v-row v-for="squareRow in 3" :key="squareRow" no-gutters>
           <v-col v-for="squareCol in 3" :key="squareCol" cols="auto" no-gutters>
-            <div style="border: 1px solid rgba(0, 0, 0, 0)">
+            <div style="margin: 1px">
               <v-row v-for="rowIndex in 3" :key="rowIndex" no-gutters>
                 <v-col v-for="colIndex in 3" :key="colIndex">
                   <SudokuCell
