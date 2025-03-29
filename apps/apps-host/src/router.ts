@@ -4,7 +4,7 @@ import SudokuContainer from '@sudoku/components/SudokuContainer.vue';
 import MinesweeperContainer from '@minesweeper/components/MinesweeperContainer.vue';
 
 const routes = [
-    { path: '/fe-apps', component: HomePage },
+    { path: '/', component: HomePage },
     { path: '/sudoku', component: SudokuContainer },
     { path: '/minesweeper', component: MinesweeperContainer },
 ];
