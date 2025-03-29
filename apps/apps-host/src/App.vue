@@ -22,7 +22,7 @@
         </v-responsive>
       </v-container>
 
-      <div v-else style="overflow: scroll; height: 80vh; width: 100vw">
+      <div v-else style="overflow: scroll; width: 100vw">
         <div class="pa-8">
           <router-view />
         </div>
