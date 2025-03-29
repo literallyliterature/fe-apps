@@ -4,9 +4,9 @@ import SudokuContainer from '@sudoku/components/SudokuContainer.vue';
 import MinesweeperContainer from '@minesweeper/components/MinesweeperContainer.vue';
 
 const routes = [
-    { path: '/', component: HomePage },
-    { path: '/sudoku', component: SudokuContainer },
-    { path: '/minesweeper', component: MinesweeperContainer },
+    { path: '/fe-apps/', component: HomePage },
+    { path: '/fe-apps/sudoku', component: SudokuContainer },
+    { path: '/fe-apps/minesweeper', component: MinesweeperContainer },
 ];
 
 export const router = createRouter({
