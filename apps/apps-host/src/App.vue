@@ -1,12 +1,12 @@
 <template>
   <v-app :style="{ background: $route.path === '/minesweeper' ? '#1d1d1d' : '' }">
     <v-app-bar
-      v-if="$route.path !== '/'"
+      v-if="$route.path !== '/fe-apps'"
       app
       class="pl-2 pt-2"
       color="transparent"
       flat>
-      <router-link to="/">
+      <router-link to="/fe-apps">
         <img src="@/assets/logo.png" alt="Logo" style="width: 42px; height: auto;" />
       </router-link>
     </v-app-bar>

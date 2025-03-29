@@ -8,7 +8,7 @@
         class="fill-height"
         justify="center">
         <v-col cols="12">
-          <router-link to="/">
+          <router-link to="/fe-apps">
             <v-img
               class="mb-4"
               height="150"
