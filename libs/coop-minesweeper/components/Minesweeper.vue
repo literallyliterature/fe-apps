@@ -276,6 +276,8 @@ methods: {
     cell.isFlagged = !wasFlagged;
     this.numberOfFlaggedCells += wasFlagged ? -1 : 1;
 
+    this.$emit('update:flaggedCells', this.numberOfFlaggedCells);
+
     if (!doNotEmit) {
         this.$emit('send', {
         action: 'right-click',
