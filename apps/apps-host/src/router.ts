@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import HomePage from "./components/HomePage.vue";
 import SudokuContainer from '@sudoku/components/SudokuContainer.vue';
 import MinesweeperContainer from '@minesweeper/components/MinesweeperContainer.vue';
@@ -10,6 +10,6 @@ const routes = [
 ];
 
 export const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes,
 });
