@@ -1,7 +1,15 @@
 <template>
   <div :key="minesKey">
-    <v-card color="#1d1d1d">
-        <v-row align="center">
+    <v-app-bar
+      color="#1d1d1d"
+      floating>
+        <v-row align="center" dense>
+
+          <v-col cols="auto">
+            <router-link to="/">
+              <img class="pl-4" src="@/assets/logo.png" alt="Logo" style="width: 42px; height: auto;" />
+            </router-link>
+          </v-col>
         <v-spacer />
 
         <v-col cols="auto">
@@ -20,7 +28,7 @@
             </v-switch>
         </v-col>
         </v-row>
-    </v-card>
+    </v-app-bar>
 
     <div style="overflow: auto">
       <Minesweeper

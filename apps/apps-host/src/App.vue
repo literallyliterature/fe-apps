@@ -1,16 +1,5 @@
 <template>
   <v-app :style="{ background: $route.path === '/minesweeper' ? '#1d1d1d' : '' }">
-    <v-app-bar
-      v-if="$route.path !== '/'"
-      app
-      class="pl-2 pt-2"
-      color="transparent"
-      flat>
-      <router-link to="/">
-        <img src="@/assets/logo.png" alt="Logo" style="width: 42px; height: auto;" />
-      </router-link>
-    </v-app-bar>
-
     <v-main>
       <v-container
         v-if="$route.path !== '/minesweeper'"
