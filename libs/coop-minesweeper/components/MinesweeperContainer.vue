@@ -30,7 +30,7 @@
         </v-row>
     </v-app-bar>
 
-    <div style="overflow: auto">
+    <div style="overflow: auto; zoom: 67%">
       <Minesweeper
         ref="mines"
         :key="minesKey"
