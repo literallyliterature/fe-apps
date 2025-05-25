@@ -1,7 +1,7 @@
 <template>
   <v-container class="fill-height" fluid style="max-width: 100%">
     <v-row>
-      <v-col cols="4" style="border-right: 1px solid grey">
+      <v-col cols="3" style="border-right: 1px solid grey">
         <v-row align="center">
           <v-col>
             <v-autocomplete
@@ -23,7 +23,7 @@
         </v-row>
       </v-col>
 
-      <v-col cols="4" style="border-right: 1px solid grey">
+      <v-col cols="3" style="border-right: 1px solid grey">
         <div style="display: grid; grid: auto / 1fr 1fr">
           <div>
             <!-- Sections -->
@@ -44,9 +44,8 @@
         </div>
       </v-col>
 
-      <v-col cols="4">
-        <div>
-          <!-- style="display: grid; grid: auto / 1fr 1fr; gap: 8px"> -->
+      <v-col cols="6">
+        <div style="display: grid; grid: auto / 1fr 1fr; gap: 8px">
           <div v-for="context in grid.contexts" class="mb-8">
             <div
               class="mb-2"
