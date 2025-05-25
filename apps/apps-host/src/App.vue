@@ -4,9 +4,7 @@
       <v-container
         v-if="$route.path !== '/minesweeper'"
         class="fill-height">
-        <v-responsive
-          class="fill-height mx-auto"
-          max-width="900">
+        <v-responsive class="fill-height mx-auto">
           <router-view />
         </v-responsive>
       </v-container>

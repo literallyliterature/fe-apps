@@ -26,9 +26,10 @@ export type Section = {
   title: string;
 };
 
-export type SearchItem = { title: string; } & ({
+export type SearchItem = { title: string; exactMatch?: boolean } & ({
   cmd: 'section.new'
   code: 'ns',
+  sectionTitle?: string,
 } | {
   cmd: 'section.select';
   code: 's',
@@ -36,6 +37,7 @@ export type SearchItem = { title: string; } & ({
 } | {
   cmd: 'page.new',
   code: 'np',
+  pageTitle?: string,
   section: Section
 } | {
   cmd: 'page.select';
@@ -44,6 +46,8 @@ export type SearchItem = { title: string; } & ({
 } | {
   cmd: 'context.new';
   code: 'nc',
+  contextTitle?: string,
+  contextType?: 'todo'|'ol'|'ul',
   page: Page;
 } | {
   cmd: 'context.select';
@@ -53,10 +57,12 @@ export type SearchItem = { title: string; } & ({
   cmd: 'todo.new';
   code: 'n',
   context: Context;
+  inputTitle?: string;
 } | {
   cmd: 'list-item.new';
   code: 'n',
   context: Context;
+  inputTitle?: string;
 } | {
   cmd: 'todo.done';
   code: 'd',

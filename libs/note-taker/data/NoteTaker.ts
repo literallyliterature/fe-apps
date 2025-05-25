@@ -17,10 +17,12 @@ function getFuzzyResults (inputText: string, searchItems: SearchItem[]): SearchI
 
   if (code) {
     const filtered = searchItems.filter(s => s.code === code);
-    if (filtered.length) items = filtered;
+    if (filtered.length) {
+      items = filtered.map(obj => ({ ...obj, exactMatch: true }));
+    }
   }
 
-  const filterResults = fuzzy.filter(inputText, items, { extract: item => item.title });
+  const filterResults = fuzzy.filter(inputText.trim(), items, { extract: item => item.title.trim() });
 
   return _.orderBy(filterResults, ['score', 'string'], ['desc', 'asc']).map(obj => obj.original);
 }
@@ -28,8 +30,20 @@ function getFuzzyResults (inputText: string, searchItems: SearchItem[]): SearchI
 
 // Search items
 
-
 function getSectionSelectSearchResults(inputText: string, allSections: Section[]) {
+  const { code, additional } = parseInputText(inputText);
+
+  if (code === 'ns' && additional) {
+    const searchItem: SearchItem = {
+      cmd: 'section.new',
+      code: 'ns',
+      exactMatch: true,
+      sectionTitle: additional,
+      title: `New section: ${additional || ''}`,
+    };
+    return [searchItem];
+  }
+
   const newItem: SearchItem = {
     cmd: 'section.new',
     code: 'ns',
@@ -49,7 +63,21 @@ function getSectionSelectSearchResults(inputText: string, allSections: Section[]
   return getFuzzyResults(inputText, searchItems);
 }
 
-function getPageSelectSearchResults(inputText: string, section: Section, allSections: Section[]) {
+function getPageSelectSearchResults(inputText: string, section: Section) {
+  const { code, additional } = parseInputText(inputText);
+
+  if (code === 'np' && additional) {
+    const searchItem: SearchItem = {
+      cmd: 'page.new',
+      code: 'np',
+      exactMatch: true,
+      pageTitle: additional,
+      section,
+      title: `New page: ${additional || ''}`,
+    };
+    return [searchItem];
+  }
+
   const newItem: SearchItem = {
     cmd: 'page.new',
     code: 'np',
@@ -64,14 +92,30 @@ function getPageSelectSearchResults(inputText: string, section: Section, allSect
   }));
 
   const searchItems = [
-    ...getSectionSelectSearchResults(inputText, allSections),
     newItem,
     ...selectItems,
   ];
   return getFuzzyResults(inputText, searchItems);
 }
 
-function getContextSelectSearchResults(inputText: string, page: Page, section: Section, allSections: Section[]) {
+function getContextSelectSearchResults(inputText: string, page: Page) {
+  const { code, additional } = parseInputText(inputText);
+
+  if (code === 'nc' && additional) {
+    const [ignore, contextType, remaining] = additional.match(/^(todo|ol|ul) (.+)?/) || [];
+
+    const searchItem: SearchItem = {
+      cmd: 'context.new',
+      code: 'nc',
+      exactMatch: true,
+      contextType: contextType as 'ul'|'ol'|'todo'|undefined,
+      contextTitle: remaining || additional,
+      page,
+      title: `New context: ${additional || ''}`,
+    };
+    return [searchItem];
+  }
+
   const newItem: SearchItem = {
     cmd: 'context.new',
     code: 'nc',
@@ -86,18 +130,26 @@ function getContextSelectSearchResults(inputText: string, page: Page, section: S
   }));
 
   const searchItems = [
-    ...getPageSelectSearchResults(inputText, section, allSections),
     newItem,
     ...selectItems,
   ];
   return getFuzzyResults(inputText, searchItems);
 }
 
-function getSearchResultsWithinContext(inputText: string, context: Context, page: Page, section: Section, allSections: Section[]) {
+function getSearchResultsWithinContext(inputText: string, context: Context, someResultsFound: boolean) {
+  const { code, additional } = parseInputText(inputText);
+
   const newItem: SearchItem = (() => {
     if (context.type === 'todo') return { cmd: 'todo.new', code: 'n', context, title: 'New todo' };
     return { cmd: 'list-item.new', code: 'n', context, title: 'New list item' };
   })();
+
+  if (code === 'n') {
+    newItem.exactMatch = true;
+    newItem.inputTitle = additional;
+    return [newItem];
+  }
+
   const doneItems: SearchItem[] = context.type !== 'todo' ?
     [] :
     context.items.map(todo => ({
@@ -107,12 +159,23 @@ function getSearchResultsWithinContext(inputText: string, context: Context, page
       title: `Mark as done: ${todo.title}`,
     }));
 
+  if (code === 'd') {
+    doneItems.forEach((item) => {
+      item.exactMatch = true;
+      return getFuzzyResults(inputText, doneItems);
+    })
+  }
+
   const searchItems = [
-    ...getContextSelectSearchResults(inputText, page, section, allSections),
     newItem,
     ...doneItems,
   ];
-  return getFuzzyResults(inputText, searchItems);
+  const fuzzyResults = getFuzzyResults(inputText, searchItems);
+
+  if (someResultsFound || fuzzyResults.length) return fuzzyResults;
+
+  newItem.inputTitle = inputText;
+  return [newItem];
 }
 
 
@@ -130,23 +193,39 @@ export class NoteTaker {
   getSearchItems(inputText: string): SearchItem[] {
     const { allSections, selectedSection, selectedPage, selectedContext } = this;
 
-    if (!selectedSection) return getSectionSelectSearchResults(inputText, allSections);
-    if (!selectedPage) return getPageSelectSearchResults(inputText, selectedSection, allSections);
-    if (!selectedContext) return getContextSelectSearchResults(inputText, selectedPage, selectedSection, allSections);
-    return getSearchResultsWithinContext(inputText, selectedContext, selectedPage, selectedSection, allSections);
+    let items: SearchItem[] = [];
+
+    const exactMatchFound = () => items.some(item => item.exactMatch);
+    const exactMatchItems = () => items.filter(item => item.exactMatch);
+
+    items = getSectionSelectSearchResults(inputText, allSections);
+    if (exactMatchFound()) return exactMatchItems();
+    if (!selectedSection) return items;
+
+    items.push(...getPageSelectSearchResults(inputText, selectedSection));
+    if (exactMatchFound()) return exactMatchItems();
+    if (!selectedPage) return items;
+
+    items.push(...getContextSelectSearchResults(inputText, selectedPage));
+    if (exactMatchFound()) return exactMatchItems();
+    if (!selectedContext) return items;
+
+    items.push(...getSearchResultsWithinContext(inputText, selectedContext, !!items.length));
+    if (exactMatchFound()) return exactMatchItems();
+    return items;
   }
 
   onSelect(searchItem: SearchItem) {
     const { cmd } = searchItem;
 
-    if (cmd === 'section.new') return this.newSection();
+    if (cmd === 'section.new') return this.newSection(searchItem.sectionTitle);
     if (cmd === 'section.select') return this.selectSection(searchItem.section);
-    if (cmd === 'page.new') return this.newPage(searchItem.section);
+    if (cmd === 'page.new') return this.newPage(searchItem.pageTitle || '', searchItem.section);
     if (cmd === 'page.select') return this.selectPage(searchItem.page);
-    if (cmd === 'context.new') return this.newContext(searchItem.page);
+    if (cmd === 'context.new') return this.newContext(searchItem.contextTitle || '', searchItem.contextType || '', searchItem.page);
     if (cmd === 'context.select') return this.selectContext(searchItem.context);
-    if (cmd === 'todo.new') return this.newListItem(searchItem.context);
-    if (cmd === 'list-item.new') return this.newListItem(searchItem.context);
+    if (cmd === 'todo.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
+    if (cmd === 'list-item.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'todo.done') return this.markAsDone(searchItem.todo);
   }
 
@@ -156,15 +235,15 @@ export class NoteTaker {
     todo.done = true;
   }
 
-  newContext(page: Page) {
-    const title = window.prompt('New context title', 'Default') || '';
+  newContext(inputTitle: string, inputContextType: string, page: Page) {
+    const title = inputTitle || window.prompt('New context title', 'Default') || '';
     const existingTitles = page.contexts.map(c => c.title.toLowerCase());
 
     if (existingTitles.includes(title.toLowerCase())) return window.alert(`Context "${title}" already exists`);
 
-    const contextType = window.prompt('New context type (todo | ol | ul | text)', 'todo') || '';
+    const contextType = inputContextType || window.prompt('New context type (todo | ol | ul | text)', 'todo') || '';
 
-    let newContext;
+    let newContext: Context;
     if (contextType === 'todo') newContext = { type: 'todo', title, items: [] };
     else if (contextType === 'ol') newContext = { type: 'ordered-list', title, items: [] };
     else if (contextType === 'ul') newContext = { type: 'unordered-list', title, items: [] };
@@ -174,8 +253,8 @@ export class NoteTaker {
     this.selectContext(newContext);
   }
 
-  newListItem(context: Context) {
-    const title = window.prompt('New item title', '') || '';
+  newListItem(inputTitle: string, context: Context) {
+    const title = inputTitle || window.prompt('New item title', '') || '';
     const findMatchingItem = () => context.items.find(todo => todo.title.toLowerCase() === title.toLowerCase());
 
     if (context.type !== 'todo' && !findMatchingItem()) {
@@ -187,8 +266,8 @@ export class NoteTaker {
     }
   }
 
-  newPage(section: Section) {
-    const title = window.prompt('New page title', 'Default') || '';
+  newPage(inputTitle: string, section: Section) {
+    const title = inputTitle || window.prompt('New page title', 'Default') || '';
     const existingTitles = section.pages.map(p => p.title.toLowerCase())
 
     if (existingTitles.includes(title.toLowerCase())) return window.alert(`Page "${title}" already exists`);
@@ -198,8 +277,8 @@ export class NoteTaker {
     this.selectPage(newPage);
   }
 
-  newSection() {
-    const title = window.prompt('New section title', 'Default') || '';
+  newSection(inputTitle: string | undefined) {
+    const title = inputTitle || window.prompt('New section title', 'Default') || '';
     const existingTitles = this.allSections.map(s => s.title.toLowerCase());
 
     if (existingTitles.includes(title.toLowerCase())) return window.alert(`Section "${title}" already exists`);
