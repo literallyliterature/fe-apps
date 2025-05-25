@@ -1,17 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { NoteTaker } from "./NoteTaker";
+import { Context } from "./Context";
 
 
 const exampleContexts = [
-  {
+  new Context({
     title: 'Skyrim',
-  },
-  {
+  }),
+  new Context({
     title: 'Halo',
-  },
-  {
+  }),
+  new Context({
     title: 'FF7',
-  },
+  }),
 ];
 
 describe('NoteTaker', () => {
@@ -71,6 +72,19 @@ describe('NoteTaker', () => {
           { cmd: 'context.select', title: 'Select context: Halo' },
           { cmd: 'context.select', title: 'Select context: Skyrim' },
         ].map(obj => expect.objectContaining(obj)));
+      });
+    });
+
+    describe('when a scope is selected', () => {
+      beforeEach(() => { selectedContext = exampleContexts[0] });
+
+      it('when text is "", returns "Leave context" item at bottom of list', () => {
+        const subject = getSubject();
+        expect(subject.pop()).toEqual({ cmd: 'context.unselect', title: 'Leave context' });
+      });
+
+      it('when text is "Leave context", only returns "Leave context" item', () => {
+        expectSubjectEquals([{ cmd: 'context.unselect', title: 'Leave context' }]);
       });
     });
   });

@@ -1,15 +1,19 @@
 import fuzzy from 'fuzzy';
 
-import { Context, SearchResult } from "./NoteTaker.types";
+import { SearchResult } from "./NoteTaker.types";
 import _ from 'lodash';
+import { Context } from './Context';
 
 
-const newContextCmd: SearchResult = { cmd: 'context.new', title: 'New context' };
+const results: Record<string, SearchResult> = {
+  leaveContext: { cmd: 'context.unselect', title: 'Leave context' },
+  newContext: { cmd: 'context.new', title: 'New context' },
+}
 
 
 export class NoteTaker {
   availableContexts: Context[];
-  selectedContext = null;
+  selectedContext: Context | null;
 
   constructor(availableContexts = [], selectedContext = null) {
     this.availableContexts = availableContexts;
@@ -29,10 +33,22 @@ export class NoteTaker {
   }
 
   getSearchItems(inputText: string): SearchResult[] {
-    if (!this.availableContexts?.length) return [newContextCmd];
+    if (!this.availableContexts?.length) return [results.newContext];
+    if (!this.selectedContext) return this.getSearchItemsUnscoped(inputText);
+    return this.getSearchItemsScoped(inputText);
+  }
 
+  getSearchItemsScoped(inputText: string): SearchResult[] {
+    const allItems = [
+      results.leaveContext,
+      ...(this.selectedContext ? this.selectedContext.getSearchItems(inputText) : []),
+    ]
+    return [results.leaveContext];
+  }
+
+  getSearchItemsUnscoped(inputText: string): SearchResult[] {
     const allSearchItems = [
-      newContextCmd,
+      results.newContext,
       ...this.selectContextSearchItems,
     ];
  
