@@ -4,8 +4,14 @@ import { type Context, type Page, type Section, type SearchItem, type Todo } fro
 import _ from 'lodash';
 
 
+function parseInputText(inputText: string) {
+  const [ignore, code, additional] = inputText.match(/^(\w{1,2})\b ?(.+)?/) || [];
+  return { code, additional };
+}
+
+
 function getFuzzyResults (inputText: string, searchItems: SearchItem[]): SearchItem[] {
-  const code = inputText.match(/^(\w{1,2})\b/)?.[0];
+  const { code } = parseInputText(inputText);
 
   let items = searchItems;
 
@@ -158,11 +164,14 @@ export class NoteTaker {
 
     const contextType = window.prompt('New context type (todo | ol | ul | text)', 'todo') || '';
 
-    if (contextType === 'todo') return page.contexts.push({ type: 'todo', title, items: [] });
-    if (contextType === 'ol') return page.contexts.push({ type: 'ordered-list', title, items: [] });
-    if (contextType === 'ul') return page.contexts.push({ type: 'unordered-list', title, items: [] });
+    let newContext;
+    if (contextType === 'todo') newContext = { type: 'todo', title, items: [] };
+    else if (contextType === 'ol') newContext = { type: 'ordered-list', title, items: [] };
+    else if (contextType === 'ul') newContext = { type: 'unordered-list', title, items: [] };
+    else return window.alert('Unsupported context type');
 
-    return window.alert('Unsupported context type');
+    page.contexts.push(newContext);
+    this.selectContext(newContext);
   }
 
   newListItem(context: Context) {
@@ -183,7 +192,10 @@ export class NoteTaker {
     const existingTitles = section.pages.map(p => p.title.toLowerCase())
 
     if (existingTitles.includes(title.toLowerCase())) return window.alert(`Page "${title}" already exists`);
-    section.pages.push({ contexts: [], title });
+
+    const newPage = { contexts: [], title }
+    section.pages.push(newPage);
+    this.selectPage(newPage);
   }
 
   newSection() {
@@ -191,7 +203,10 @@ export class NoteTaker {
     const existingTitles = this.allSections.map(s => s.title.toLowerCase());
 
     if (existingTitles.includes(title.toLowerCase())) return window.alert(`Section "${title}" already exists`);
-    this.allSections.push({ pages: [], title });
+
+    const newSection = { pages: [], title };
+    this.allSections.push(newSection);
+    this.selectSection(newSection);
   }
 
   selectContext(context: Context) {
