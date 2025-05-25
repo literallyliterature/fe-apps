@@ -35,6 +35,16 @@
             title="Minesweeper"
             to="/minesweeper" />
         </v-col>
+
+        <v-col cols="12" sm="6">
+          <v-card
+            append-icon="fas fa-list"
+            class="py-4"
+            color="pink-lighten-1"
+            rounded="lg"
+            title="Notes"
+            to="/notes" />
+        </v-col>
       </v-row>
     </v-responsive>
   </v-container>

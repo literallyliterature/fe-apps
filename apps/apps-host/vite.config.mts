@@ -21,6 +21,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@sudoku': fileURLToPath(new URL('../../libs/sudoku', import.meta.url)),
       '@minesweeper': fileURLToPath(new URL('../../libs/coop-minesweeper', import.meta.url)),
+      '@note-taker': fileURLToPath(new URL('../../libs/note-taker', import.meta.url)),
     },
     extensions: [
       '.js',
