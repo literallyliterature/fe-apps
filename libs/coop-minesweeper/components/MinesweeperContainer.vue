@@ -4,29 +4,35 @@
       color="#1d1d1d"
       floating>
         <v-row align="center" dense>
-
           <v-col cols="auto">
             <router-link to="/">
               <img class="pl-4" src="@/assets/logo.png" alt="Logo" style="width: 42px; height: auto;" />
             </router-link>
           </v-col>
-        <v-spacer />
 
-        <v-col cols="auto">
-            {{ remainingMines }}
-        </v-col>
+          <v-spacer />
 
-        <v-col cols="auto">
-            <v-switch
-            class="mb-n5"
-            v-model="mobileMode">
-            <template #label>
-                <v-icon>
-                fa-solid fa-mobile-alt
-                </v-icon>
-            </template>
-            </v-switch>
-        </v-col>
+          <v-col cols="auto">
+            <v-btn icon size="small" @click="refresh">
+              <v-icon size="small">fa-solid fa-repeat</v-icon>
+            </v-btn>
+          </v-col>
+
+          <v-col cols="auto" class="text-body-2 mr-2">
+              {{ remainingMines }} <span style="color: grey">remaining</span>
+          </v-col>
+
+          <v-col cols="auto">
+              <v-switch
+              class="mb-n5"
+              v-model="mobileMode">
+              <template #label>
+                  <v-icon>
+                  fa-solid fa-mobile-alt
+                  </v-icon>
+              </template>
+              </v-switch>
+          </v-col>
         </v-row>
     </v-app-bar>
 
