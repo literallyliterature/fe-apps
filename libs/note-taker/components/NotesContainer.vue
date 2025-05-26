@@ -89,8 +89,20 @@ import { NoteTaker } from '../data/NoteTaker';
 import { type SearchItem } from '../data/NoteTaker.types';
 
 const selectedItem = ref(null);
-const noteTaker = ref(new NoteTaker());
 
+const storedJSON = localStorage.getItem('notes_json');
+const parsedJSON = (() => {
+  if (!storedJSON) return undefined;
+  try {
+    return JSON.parse(storedJSON);
+  } catch {
+    return undefined;
+  }
+})();
+
+const noteTaker = ref(new NoteTaker(parsedJSON));
+
+const allSections = computed(() => noteTaker.value.allSections);
 const grid = computed(() => {
   const { allSections, selectedSection, selectedPage, selectedContext } = noteTaker.value;
   return {
@@ -115,4 +127,10 @@ watch(selectedItem, (v) => {
   searchString.value = '';
 });
 watch(searchString, v => items.value = noteTaker.value.getSearchItems(v));
+
+watch(allSections, v => {
+  setTimeout(() => {
+    localStorage.setItem('notes_json', JSON.stringify(v));
+  });
+}, { deep: true });
 </script>
