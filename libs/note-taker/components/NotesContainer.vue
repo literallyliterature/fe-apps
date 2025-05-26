@@ -1,65 +1,67 @@
 <template>
   <v-container class="fill-height" fluid style="max-width: 100%">
-    <v-row>
-      <v-col cols="3" style="border-right: 1px solid grey">
-        <v-row align="center">
-          <v-col>
-            <v-autocomplete
-              v-model="selectedItem"
-              v-model:search="searchString"
-              autocomplete="off"
-              autofocus
-              auto-select-first
-              hide-details
-              hide-no-data
-              :items
-              item-title="title"
-              label="Input"
-              no-filter
-              return-object
-              style="max-width: 600px"
-              variant="outlined" />
-            </v-col>
-        </v-row>
-      </v-col>
+    <div style="width: 100%; display: grid; grid: auto / 1fr 1fr 2fr; gap: 32px">
+      <div>
+        <v-autocomplete
+          v-model="selectedItem"
+          v-model:search="searchString"
+          autocomplete="off"
+          autofocus
+          auto-select-first
+          hide-details
+          hide-no-data
+          :items
+          item-title="title"
+          label="Input"
+          no-filter
+          return-object
+          style="max-width: 600px"
+          variant="outlined" />
+      </div>
 
-      <v-col cols="3" style="border-right: 1px solid grey">
-        <div style="display: grid; grid: auto / 1fr 1fr">
-          <div>
+      <div>
+        <v-row justify="space-around">
+          <v-col cols="auto">
             <!-- Sections -->
+            <div class="text-overline">Sections</div>
+
             <div
               v-for="section in grid.sections"
-              :style="section === grid.selectedSection ? 'font-weight: bold' : ''">
+              :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : ''">
               {{ section.title }}
             </div>
-          </div>
+          </v-col>
 
-          <div>
+          <v-col cols="auto">
+            <div class="text-overline">Pages</div>
+
             <div
               v-for="page in grid.pages"
-              :style="page === grid.selectedPage ? 'font-weight: bold' : ''">
+              :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : ''">
               {{ page.title }}
             </div>
-          </div>
-        </div>
-      </v-col>
+          </v-col>
+        </v-row>
+      </div>
 
-      <v-col cols="6">
-        <div style="display: grid; grid: auto / 1fr 1fr; gap: 8px">
+      <div>
+        <div style="display: grid; grid: auto / 1fr 1fr; gap: 16px">
           <div v-for="context in grid.contexts" class="mb-8">
-            <div
-              class="mb-2"
-              :style="context === grid.selectedContext ? 'font-weight: bold' : ''">
-              {{ context.title }}
-            </div>
+            <v-card
+              class="pa-3"
+              :color="context === grid.selectedContext ? 'pink-lighten-1' : ''"
+              variant="outlined">
+              <div
+                class="mb-2 font-weight-bold">
+                {{ context.title }}
+              </div>
 
-            <div>
               <div v-if="context.type === 'todo'">
                 <v-checkbox
                   v-for="item in context.items"
                   v-model="item.done"
                   class="mt-n2"
-                  density="compact"
+                  density="comfortable"
                   hide-details
                   :label="item.title" />
               </div>
@@ -73,11 +75,11 @@
                   {{ item.title }}
                 </li>
               </ol>
+            </v-card>
             </div>
-          </div>
         </div>
-      </v-col>
-    </v-row>
+      </div>
+    </div>
   </v-container>
 </template>
 

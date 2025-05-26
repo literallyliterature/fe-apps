@@ -288,17 +288,17 @@ export class NoteTaker {
     this.selectSection(newSection);
   }
 
-  selectContext(context: Context) {
+  selectContext(context?: Context) {
     this.selectedContext = context;
   }
 
-  selectPage(page: Page) {
+  selectPage(page?: Page) {
     this.selectedPage = page;
-    if (page.contexts.length) this.selectContext(page.contexts[0]);
+    this.selectContext(page?.contexts?.[0]);
   }
 
   selectSection(section: Section) {
     this.selectedSection = section;
-    if (section.pages.length) this.selectPage(section.pages[0]);
+    this.selectPage(section.pages[0] || null);
   }
 }
