@@ -1,7 +1,7 @@
 <template>
   <v-container class="fill-height" fluid style="max-width: 100%">
     <div style="width: 100%; display: grid; grid: auto / 1fr 1fr 2fr; gap: 32px">
-      <div>
+      <v-container class="fill-height">
         <v-autocomplete
           v-model="selectedItem"
           v-model:search="searchString"
@@ -17,32 +17,34 @@
           return-object
           style="max-width: 600px"
           variant="outlined" />
-      </div>
+      </v-container>
 
-      <div>
+      <v-container class="fill-height">
         <v-row justify="space-around">
-          <v-col cols="auto">
+          <v-col style="min-width: 200px">
             <!-- Sections -->
             <div class="text-overline">Sections</div>
 
             <div
               v-for="section in grid.sections"
-              :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : ''">
+              class="mb-1"
+              :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
               {{ section.title }}
             </div>
           </v-col>
 
-          <v-col cols="auto">
+          <v-col style="min-width: 200px">
             <div class="text-overline">Pages</div>
 
             <div
               v-for="page in grid.pages"
-              :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : ''">
+              class="mb-1"
+              :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
               {{ page.title }}
             </div>
           </v-col>
         </v-row>
-      </div>
+      </v-container>
 
       <div>
         <div style="display: grid; grid: auto / 1fr 1fr; gap: 16px">
