@@ -29,7 +29,9 @@
               v-for="section in grid.sections"
               class="mb-1"
               :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
-              {{ section.title }}
+              <EditAndDeleteButtons @edit="editTitle(section)" @delete="deleteSection(section)">
+                {{ section.title }}
+              </EditAndDeleteButtons>
             </div>
           </v-col>
 
@@ -40,7 +42,9 @@
               v-for="page in grid.pages"
               class="mb-1"
               :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
-              {{ page.title }}
+              <EditAndDeleteButtons @edit="editTitle(page)" @delete="deletePage(page)">
+                {{ page.title }}
+              </EditAndDeleteButtons>
             </div>
           </v-col>
         </v-row>
@@ -55,28 +59,41 @@
               variant="outlined">
               <div
                 class="mb-2 font-weight-bold">
-                {{ context.title }}
+                <EditAndDeleteButtons @edit="editTitle(context)" @delete="deleteContext(context)">
+                  {{ context.title }}
+                </EditAndDeleteButtons>
               </div>
 
               <div v-if="context.type === 'todo'">
-                <v-checkbox
+                <EditAndDeleteButtons
                   v-for="item in context.items"
-                  v-model="item.done"
-                  class="mt-n2"
-                  density="comfortable"
-                  hide-details
-                  :label="item.title" />
+                  @edit="editTitle(item)"
+                  @delete="deleteContextItem(item)">
+                  <v-checkbox
+                    v-model="item.done"
+                    class="mt-n2"
+                    density="comfortable"
+                    hide-details
+                    :label="item.title" />
+                </EditAndDeleteButtons>
               </div>
-              <ul v-else-if="context.type === 'unordered-list'" style="list-style-position: inside;">
-                <li v-for="item in context.items">
-                  {{ item.title }}
-                </li>
+              <component
+                v-else :is="context.type === 'unordered-list' ? 'ul' : 'ol'"
+                style="list-style-position: inside;">
+                <EditAndDeleteButtons
+                  v-for="item in context.items"
+                  @edit="editTitle(item)"
+                  @delete="deleteContextItem(item)">
+                  <li>{{ item.title }}</li>
+                </EditAndDeleteButtons>
+              </component>
+              <!-- <ul v-else-if="context.type === 'unordered-list'" style="list-style-position: inside;">
               </ul>
               <ol v-else-if="context.type === 'ordered-list'" style="list-style-position: inside;">
                 <li v-for="item in context.items">
-                  {{ item.title }}
+                <EditAndDeleteButtons>{{ item.title }}</EditAndDeleteButtons>
                 </li>
-              </ol>
+              </ol> -->
             </v-card>
             </div>
         </div>
@@ -88,7 +105,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { NoteTaker } from '../data/NoteTaker';
-import { type SearchItem } from '../data/NoteTaker.types';
+import { Context, ListItem, Page, Section, Todo, type SearchItem } from '../data/NoteTaker.types';
+
+import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
+import _ from 'lodash';
 
 const selectedItem = ref(null);
 
@@ -122,6 +142,27 @@ const grid = computed(() => {
 const items = ref<SearchItem[]>([]);
 const searchString = ref('');
 
+const editTitle = (item: { title: string }) => {
+  const newTitle = window.prompt('New title', item.title) || '';
+  if (newTitle) item.title = newTitle;
+};
+const deleteSection = (section: Section) => {
+  if (!window.confirm(`Delete section ${section.title}?`)) return;
+_.remove(noteTaker.value.allSections, s => s === section);
+};
+const deletePage = (page: Page) => {
+  if (!window.confirm(`Delete page ${page.title}?`)) return;
+  _.remove(grid.value.selectedSection?.pages || [], p => p === page);
+};
+const deleteContext = (context: Context) => {
+  if (!window.confirm(`Delete context ${context.title}?`)) return;
+  _.remove(grid.value.selectedPage?.contexts || [], c => c === context);
+};
+const deleteContextItem = (item: Context['items'][0]) => {
+  if (!window.confirm(`Delete item ${item.title}?`)) return;
+  _.remove(grid.value.selectedContext?.items || [], i => i === item);
+};
+
 watch(selectedItem, (v) => {
   if (!v) return;
   noteTaker.value.onSelect(v);
@@ -142,7 +183,7 @@ watch(allSections, v => {
   width: 100%;
   height: 100%;
   display: grid;
-  grid: auto auto / 1fr 2fr;
+  grid: 1fr auto / 1fr 2fr;
   gap: 32px;
   max-height: 90vh;
 }
