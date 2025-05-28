@@ -59,14 +59,17 @@
               variant="outlined">
               <div
                 class="mb-2 font-weight-bold">
-                <EditAndDeleteButtons @edit="editTitle(context)" @delete="deleteContext(context)">
+                <EditAndDeleteButtons
+                  :show-delete-items="context.type === 'todo' && context.items.some(t => t.done)"
+                  @edit="editTitle(context)" @delete="deleteContext(context)" @delete-items="deleteDoneContextItems(context)">
                   {{ context.title }}
                 </EditAndDeleteButtons>
               </div>
 
               <div v-if="context.type === 'todo'">
                 <EditAndDeleteButtons
-                  v-for="item in context.items"
+                  v-for="item in getOrderedTodoItems(context.items)"
+                  :default-opacity="item.done ? '0.5' : undefined"
                   @edit="editTitle(item)"
                   @delete="deleteContextItem(item)">
                   <v-checkbox
@@ -142,6 +145,8 @@ const grid = computed(() => {
 const items = ref<SearchItem[]>([]);
 const searchString = ref('');
 
+const getOrderedTodoItems = (items: Todo[]) => _.orderBy(items, 'done');
+
 const editTitle = (item: { title: string }) => {
   const newTitle = window.prompt('New title', item.title) || '';
   if (newTitle) item.title = newTitle;
@@ -161,6 +166,10 @@ const deleteContext = (context: Context) => {
 const deleteContextItem = (item: Context['items'][0]) => {
   if (!window.confirm(`Delete item ${item.title}?`)) return;
   _.remove(grid.value.selectedContext?.items || [], i => i === item);
+};
+const deleteDoneContextItems = (context: Context) => {
+  if (!window.confirm(`Delete done items in ${context.title}`)) return;
+  if (context.type === 'todo') _.remove(context.items, item => item.done);
 };
 
 watch(selectedItem, (v) => {
