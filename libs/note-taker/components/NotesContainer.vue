@@ -1,7 +1,7 @@
 <template>
   <v-container class="fill-height" fluid style="max-width: 100%">
-    <div style="width: 100%; display: grid; grid: auto / 1fr 1fr 2fr; gap: 32px">
-      <v-container class="fill-height">
+    <div class="page-grid">
+      <div class="bottom-of-grid">
         <v-autocomplete
           v-model="selectedItem"
           v-model:search="searchString"
@@ -17,10 +17,10 @@
           return-object
           style="max-width: 600px"
           variant="outlined" />
-      </v-container>
+      </div>
 
       <v-container class="fill-height">
-        <v-row justify="space-around">
+        <v-row justify="space-around" style="overflow-y: scroll">
           <v-col style="min-width: 200px">
             <!-- Sections -->
             <div class="text-overline">Sections</div>
@@ -46,7 +46,7 @@
         </v-row>
       </v-container>
 
-      <div>
+      <div style="overflow-y: scroll">
         <div style="display: grid; grid: auto / 1fr 1fr; gap: 16px">
           <div v-for="context in grid.contexts" class="mb-8">
             <v-card
@@ -136,3 +136,23 @@ watch(allSections, v => {
   });
 }, { deep: true });
 </script>
+
+<style>
+.page-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid: auto auto / 1fr 2fr;
+  gap: 32px;
+  max-height: 90vh;
+}
+
+.bottom-of-grid {
+  align-self: end;
+  grid-column: 1 / 4;
+  grid-row: 2;
+  width: 100%;
+  max-width: 600px;
+  justify-self: center;
+}
+</style>
