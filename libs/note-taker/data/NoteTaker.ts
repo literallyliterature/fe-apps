@@ -10,7 +10,7 @@ function parseInputText(inputText: string) {
 }
 
 
-function getFuzzyResults (inputText: string, searchItems: SearchItem[]): SearchItem[] {
+function getFuzzyResults(inputText: string, searchItems: SearchItem[]): SearchItem[] {
   const { code } = parseInputText(inputText);
 
   let items = searchItems;
@@ -33,15 +33,27 @@ function getFuzzyResults (inputText: string, searchItems: SearchItem[]): SearchI
 function getSectionSelectSearchResults(inputText: string, allSections: Section[]) {
   const { code, additional } = parseInputText(inputText);
 
-  if (code === 'ns' && additional) {
-    const searchItem: SearchItem = {
-      cmd: 'section.new',
-      code: 'ns',
-      exactMatch: true,
-      sectionTitle: additional,
-      title: `New section: ${additional || ''}`,
-    };
-    return [searchItem];
+  const exactNewItem: SearchItem = {
+    cmd: 'section.new',
+    code: 'ns',
+    exactMatch: true,
+    sectionTitle: additional,
+    title: `New section: ${additional || ''}`,
+  };
+
+  if (code === 'ns' && additional) return [exactNewItem];
+
+  const selectItems: SearchItem[] = allSections.map(section => ({
+    cmd: 'section.select',
+    code: 's',
+    section,
+    title: `Select section: ${section.title}`,
+  }));
+
+  if (code === 's' && additional) {
+    const results = getFuzzyResults(inputText, selectItems);
+    if (results.length) return results;
+    return [exactNewItem];
   }
 
   const newItem: SearchItem = {
@@ -49,12 +61,6 @@ function getSectionSelectSearchResults(inputText: string, allSections: Section[]
     code: 'ns',
     title: 'New section',
   };
-  const selectItems: SearchItem[] = allSections.map(section => ({
-    cmd: 'section.select',
-    code: 's',
-    section,
-    title: `Select section: ${section.title}`,
-  }));
 
   const searchItems = [
     newItem,
@@ -66,16 +72,28 @@ function getSectionSelectSearchResults(inputText: string, allSections: Section[]
 function getPageSelectSearchResults(inputText: string, section: Section) {
   const { code, additional } = parseInputText(inputText);
 
-  if (code === 'np' && additional) {
-    const searchItem: SearchItem = {
-      cmd: 'page.new',
-      code: 'np',
-      exactMatch: true,
-      pageTitle: additional,
-      section,
-      title: `New page: ${additional || ''}`,
-    };
-    return [searchItem];
+  const exactNewItem: SearchItem = {
+    cmd: 'page.new',
+    code: 'np',
+    exactMatch: true,
+    pageTitle: additional,
+    section,
+    title: `New page: ${additional || ''}`,
+  };
+
+  if (code === 'np' && additional) return [exactNewItem];
+
+  const selectItems: SearchItem[] = section.pages.map(page => ({
+    cmd: 'page.select',
+    code: 'p',
+    page,
+    title: `Select page: ${page.title}`,
+  }));
+
+  if (code === 'p' && additional) {
+    const results = getFuzzyResults(inputText, selectItems);
+    if (results.length) return results;
+    return [exactNewItem];
   }
 
   const newItem: SearchItem = {
@@ -84,12 +102,6 @@ function getPageSelectSearchResults(inputText: string, section: Section) {
     section,
     title: 'New page',
   };
-  const selectItems: SearchItem[] = section.pages.map(page => ({
-    cmd: 'page.select',
-    code: 'p',
-    page,
-    title: `Select page: ${page.title}`,
-  }));
 
   const searchItems = [
     newItem,
@@ -100,11 +112,18 @@ function getPageSelectSearchResults(inputText: string, section: Section) {
 
 function getContextSelectSearchResults(inputText: string, page: Page) {
   const { code, additional } = parseInputText(inputText);
+  
+  const selectItems: SearchItem[] = page.contexts.map(context => ({
+    cmd: 'context.select',
+    code: 'c',
+    context,
+    title: `Select context: ${context.title}`,
+  }));
 
-  if (code === 'nc' && additional) {
+  if (additional) {
     const [ignore, contextType, remaining] = additional.match(/^(todo|ol|ul) (.+)?/) || [];
 
-    const searchItem: SearchItem = {
+    const exactNewItem: SearchItem = {
       cmd: 'context.new',
       code: 'nc',
       exactMatch: true,
@@ -113,7 +132,14 @@ function getContextSelectSearchResults(inputText: string, page: Page) {
       page,
       title: `New context: ${additional || ''}`,
     };
-    return [searchItem];
+
+    if (code === 'nc') return [exactNewItem];
+
+    if (code === 'c') {
+      const results = getFuzzyResults(inputText, selectItems);
+      if (results.length) return results;
+      return [exactNewItem];
+    }
   }
 
   const newItem: SearchItem = {
@@ -122,12 +148,6 @@ function getContextSelectSearchResults(inputText: string, page: Page) {
     page,
     title: 'New context',
   };
-  const selectItems: SearchItem[] = page.contexts.map(context => ({
-    cmd: 'context.select',
-    code: 'c',
-    context,
-    title: `Select context: ${context.title}`,
-  }));
 
   const searchItems = [
     newItem,
