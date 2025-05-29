@@ -2,8 +2,10 @@
   <v-hover>
     <template #default="{ isHovering, props }">
       <v-row v-bind="props" align="center" no-gutters :style="isHovering ? 'opacity: 1' : `opacity: ${defaultOpacity}`">
-        <v-col>
-          <slot />
+        <v-col @click="$emit('click')">
+          <div :style="!noClickListener ? 'cursor: pointer' : ''">
+            <slot />
+          </div>
         </v-col>
 
         <v-col
@@ -30,6 +32,14 @@
 </template>
 
 <script lang="ts" setup>
-defineEmits(['edit', 'delete', 'delete-items']);
-const { defaultOpacity = '0.8', showDeleteItems = false } = defineProps<{ defaultOpacity?: string, showDeleteItems?: boolean }>();
+defineEmits(['click', 'edit', 'delete', 'delete-items']);
+const {
+  defaultOpacity = '0.8',
+  noClickListener = false,
+  showDeleteItems = false,
+} = defineProps<{
+  defaultOpacity?: string,
+  noClickListener?: boolean,
+  showDeleteItems?: boolean,
+}>();
 </script>

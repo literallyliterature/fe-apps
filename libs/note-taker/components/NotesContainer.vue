@@ -29,7 +29,7 @@
               v-for="section in grid.sections"
               class="mb-1"
               :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
-              <EditAndDeleteButtons @edit="editTitle(section)" @delete="deleteSection(section)">
+              <EditAndDeleteButtons @click="selectSection(section)" @edit="editTitle(section)" @delete="deleteSection(section)">
                 {{ section.title }}
               </EditAndDeleteButtons>
             </div>
@@ -42,7 +42,7 @@
               v-for="page in grid.pages"
               class="mb-1"
               :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
-              <EditAndDeleteButtons @edit="editTitle(page)" @delete="deletePage(page)">
+              <EditAndDeleteButtons @click="selectPage(page)" @edit="editTitle(page)" @delete="deletePage(page)">
                 {{ page.title }}
               </EditAndDeleteButtons>
             </div>
@@ -61,7 +61,7 @@
                 class="mb-2 font-weight-bold">
                 <EditAndDeleteButtons
                   :show-delete-items="context.type === 'todo' && context.items.some(t => t.done)"
-                  @edit="editTitle(context)" @delete="deleteContext(context)" @delete-items="deleteDoneContextItems(context)">
+                  @edit="editTitle(context)" @click="selectContext(context)" @delete="deleteContext(context)" @delete-items="deleteDoneContextItems(context)">
                   {{ context.title }}
                 </EditAndDeleteButtons>
               </div>
@@ -70,6 +70,7 @@
                 <EditAndDeleteButtons
                   v-for="item in getOrderedTodoItems(context.items)"
                   :default-opacity="item.done ? '0.5' : undefined"
+                  no-click-listener
                   @edit="editTitle(item)"
                   @delete="deleteContextItem(item)">
                   <v-checkbox
@@ -85,6 +86,7 @@
                 style="list-style-position: inside;">
                 <EditAndDeleteButtons
                   v-for="item in context.items"
+                  no-click-listener
                   @edit="editTitle(item)"
                   @delete="deleteContextItem(item)">
                   <li>{{ item.title }}</li>
@@ -146,6 +148,10 @@ const items = ref<SearchItem[]>([]);
 const searchString = ref('');
 
 const getOrderedTodoItems = (items: Todo[]) => _.orderBy(items, 'done');
+
+const selectSection = (section: Section) => { noteTaker.value.selectSection(section); };
+const selectPage = (page: Page) => { noteTaker.value.selectPage(page); };
+const selectContext = (context: Context) => { noteTaker.value.selectContext(context); };
 
 const editTitle = (item: { title: string }) => {
   const newTitle = window.prompt('New title', item.title) || '';
