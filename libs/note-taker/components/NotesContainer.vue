@@ -3,6 +3,7 @@
     <div class="page-grid">
       <div class="bottom-of-grid">
         <v-autocomplete
+          ref="userInput"
           v-model="selectedItem"
           v-model:search="searchString"
           autocomplete="off"
@@ -81,6 +82,7 @@
                     :label="item.title" />
                 </EditAndDeleteButtons>
               </div>
+
               <component
                 v-else :is="context.type === 'unordered-list' ? 'ul' : 'ol'"
                 style="list-style-position: inside;">
@@ -92,13 +94,6 @@
                   <li>{{ item.title }}</li>
                 </EditAndDeleteButtons>
               </component>
-              <!-- <ul v-else-if="context.type === 'unordered-list'" style="list-style-position: inside;">
-              </ul>
-              <ol v-else-if="context.type === 'ordered-list'" style="list-style-position: inside;">
-                <li v-for="item in context.items">
-                <EditAndDeleteButtons>{{ item.title }}</EditAndDeleteButtons>
-                </li>
-              </ol> -->
             </v-card>
             </div>
         </div>
@@ -108,9 +103,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, Ref, ref, useTemplateRef, watch } from 'vue';
 import { NoteTaker } from '../data/NoteTaker';
-import { Context, ListItem, Page, Section, Todo, type SearchItem } from '../data/NoteTaker.types';
+import { Context, Page, Section, Todo, type SearchItem } from '../data/NoteTaker.types';
 
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 import _ from 'lodash';
@@ -191,6 +186,18 @@ watch(allSections, v => {
     localStorage.setItem('notes_json', JSON.stringify(v));
   });
 }, { deep: true });
+
+const input = useTemplateRef('userInput') as Ref<HTMLElement>;
+onMounted(() => {
+  document.addEventListener("keydown", (event) => {
+    if (event.isComposing) return;
+    if (event.key === '/') {
+      if (event.target instanceof HTMLInputElement) return;
+      if (input.value?.focus) input.value.focus();
+      event.preventDefault();
+    }
+  });
+});
 </script>
 
 <style>

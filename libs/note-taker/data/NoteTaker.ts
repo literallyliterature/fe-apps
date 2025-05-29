@@ -187,7 +187,7 @@ export class NoteTaker {
 
   constructor(allSections = []) {
     this.allSections = allSections;
-    if (allSections.length) this.selectedSection = allSections[0];
+    if (allSections.length) this.selectSection(allSections[0]);
   }
 
   getSearchItems(inputText: string): SearchItem[] {
