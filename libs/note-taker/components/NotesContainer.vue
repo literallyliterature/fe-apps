@@ -192,7 +192,7 @@ onMounted(() => {
   document.addEventListener("keydown", (event) => {
     if (event.isComposing) return;
     if (event.key === '/') {
-      if (event.target instanceof HTMLInputElement) return;
+      if (event.target instanceof HTMLInputElement && event.target?.type === 'text') return;
       if (input.value?.focus) input.value.focus();
       event.preventDefault();
     }
