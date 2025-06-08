@@ -1,3 +1,4 @@
 # TODOs
 
-- [ ] add ability to export and import notebooks
+- [ ] add ability to rearrange items
+- [ ] add help command

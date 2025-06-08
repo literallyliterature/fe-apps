@@ -75,6 +75,12 @@ export type SearchItem = { title: string; exactMatch?: boolean } & ({
   cmd: 'page.remove-done';
   code: 'rp';
   page: Page;
+} | {
+  cmd: 'clipboard.import';
+  code: 'im';
+} | {
+  cmd: 'clipboard.export';
+  code: 'ex';
 });
 
 export type Command = SearchItem['cmd'];

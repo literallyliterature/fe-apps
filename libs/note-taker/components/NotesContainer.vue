@@ -154,15 +154,15 @@ const editTitle = (item: { title: string }) => {
 };
 const deleteSection = (section: Section) => {
   if (!window.confirm(`Delete section ${section.title}?`)) return;
-_.remove(noteTaker.value.allSections, s => s === section);
+  noteTaker.value.removeSection(section);
 };
 const deletePage = (page: Page) => {
   if (!window.confirm(`Delete page ${page.title}?`)) return;
-  _.remove(grid.value.selectedSection?.pages || [], p => p === page);
+  noteTaker.value.removePage(page);
 };
 const deleteContext = (context: Context) => {
   if (!window.confirm(`Delete context ${context.title}?`)) return;
-  _.remove(grid.value.selectedPage?.contexts || [], c => c === context);
+  noteTaker.value.removeContext(context);
 };
 const deleteContextItem = (item: Context['items'][0]) => {
   if (!window.confirm(`Delete item ${item.title}?`)) return;
@@ -170,7 +170,7 @@ const deleteContextItem = (item: Context['items'][0]) => {
 };
 const deleteDoneContextItems = (context: Context) => {
   if (!window.confirm(`Delete done items in ${context.title}`)) return;
-  if (context.type === 'todo') _.remove(context.items, item => item.done);
+  noteTaker.value.removeDoneFromContext(context);
 };
 
 watch(selectedItem, (v) => {

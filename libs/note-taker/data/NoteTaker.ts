@@ -218,6 +218,37 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
   return [newItem];
 }
 
+function mergeWithCommonTitles(first, second) {
+  return _.mergeWith(first, second, (firstItem, secondItem) => {
+    if (!_.isArray(firstItem) || !_.isArray(secondItem)) return undefined; // default merge behaviour
+
+    const byTitles = _.keyBy([...firstItem, ...secondItem], 'title');
+    const orderedTitles = _.orderBy(Object.keys(byTitles));
+    return orderedTitles.map(title => mergeWithCommonTitles(
+      firstItem.find(obj => obj.title === title) || {},
+      secondItem.find(obj => obj.title === title) || {},
+    ));
+  });
+}
+
+function copyToClipboard(text: string) {
+  const inputElement = document.createElement('input');
+  inputElement.id = 'for-clipboard';
+  inputElement.value = text;
+  inputElement.style.position = 'absolute';
+  inputElement.style.visibility = 'hidden';
+  document.body.appendChild(inputElement);
+
+  inputElement.select();
+  inputElement.setSelectionRange(0, 99999);
+
+  navigator.clipboard.writeText(inputElement.value);
+
+  inputElement.remove();
+
+  window.alert('Copied to clipboard');
+}
+
 
 export class NoteTaker {
   allSections: Section[];
@@ -230,6 +261,73 @@ export class NoteTaker {
     if (allSections.length) this.selectSection(allSections[0]);
   }
 
+  static fromJSON(storedJSON) {
+    if (!storedJSON) return new NoteTaker();
+
+    try {
+      const {
+        allSections, selectedSectionTitle, selectedPageTitle, selectedContextTitle,
+      } = JSON.parse(storedJSON);
+
+      if (!allSections?.length) return new NoteTaker();
+
+      const nt = new NoteTaker(allSections);
+      if (!selectedSectionTitle) return nt;
+
+      try {
+        const section = nt.allSections.find(s => s.title === selectedSectionTitle);
+        if (!section) return nt;
+        nt.selectSection(section);
+
+        const page = section.pages.find(p => p.title === selectedPageTitle);
+        if (!page) return nt;
+        nt.selectPage(page);
+
+        const context = page.contexts.find(c => c.title === selectedContextTitle);
+        if (!context) return nt;
+        nt.selectContext(context);
+        return nt;
+      } catch (error) {
+        console.error(error);
+        return nt;
+      }
+    } catch (error) {
+      console.error(error);
+      return new NoteTaker();
+    }
+  }
+
+  toJSON() {
+    return JSON.stringify({
+      allSections: this.allSections,
+      selectedSectionTitle: this.selectedSection?.title,
+      selectedPageTitle: this.selectedPage?.title,
+      selectedContextTitle: this.selectedContext?.title,
+    });
+  }
+
+  exportToClipboard() {
+    copyToClipboard(this.toJSON());
+  }
+
+  async importFromClipboard() {
+    const pastedContent = window.prompt('Please paste JSON') || '';
+    try {
+      const parsed = JSON.parse(pastedContent);
+      const currentFromJSON = JSON.parse(this.toJSON());
+      const merged = mergeWithCommonTitles(parsed, currentFromJSON);
+
+      const nt = NoteTaker.fromJSON(JSON.stringify(merged));
+
+      this.allSections = nt.allSections;
+      if (nt.selectedSection) this.selectSection(nt.selectedSection);
+      if (nt.selectedPage) this.selectPage(nt.selectedPage);
+      if (nt.selectedContext) this.selectContext(nt.selectedContext);
+    } catch {
+      window.alert('Invalid JSON');
+    }
+  }
+
   getSearchItems(inputText: string): SearchItem[] {
     const { allSections, selectedSection, selectedPage, selectedContext } = this;
 
@@ -237,6 +335,13 @@ export class NoteTaker {
 
     const exactMatchFound = () => items.some(item => item.exactMatch);
     const exactMatchItems = () => items.filter(item => item.exactMatch);
+
+    const { code, additional } = parseInputText(inputText);
+    if (code === 'ex' && !additional) {
+      return [{ code: 'ex', cmd: 'clipboard.export', title: 'Export to clipboard', exactMatch: true }];
+    } else if (code === 'im' && !additional) {
+      return [{ code: 'im', cmd: 'clipboard.import', title: 'Import from clipboard', exactMatch: true }];
+    }
 
     items = getSectionSelectSearchResults(inputText, allSections);
     if (exactMatchFound()) return exactMatchItems();
@@ -269,6 +374,9 @@ export class NoteTaker {
     if (cmd === 'todo.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'list-item.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'todo.done') return this.markAsDone(searchItem.todo);
+
+    if (cmd === 'clipboard.import') return this.importFromClipboard();
+    if (cmd === 'clipboard.export') return this.exportToClipboard();
   }
 
   // command handlers
@@ -330,6 +438,11 @@ export class NoteTaker {
     this.selectSection(newSection);
   }
 
+  removeContext(context: Context) {
+    _.remove(this.selectedPage?.contexts || [], c => c === context);
+    if (context === this.selectedContext) this.selectContext(this.selectedPage?.contexts[0]);
+  }
+
   removeDoneFromContext(context: Context) {
     if (context.type !== 'todo') return;
 
@@ -340,6 +453,16 @@ export class NoteTaker {
 
   removeDoneFromPage(page: Page) {
     page.contexts.forEach((context) => this.removeDoneFromContext(context));
+  }
+
+  removePage(page: Page) {
+    _.remove(this.selectedSection?.pages || [], p => p === page);
+    if (page === this.selectedPage) this.selectPage(this.selectedSection?.pages[0]);
+  }
+
+  removeSection(section: Section) {
+    _.remove(this.allSections, s => s === section);
+    if (section === this.selectedSection) this.selectSection(this.allSections[0]);
   }
 
   selectContext(context?: Context) {
