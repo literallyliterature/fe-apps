@@ -113,6 +113,8 @@ import _ from 'lodash';
 const selectedItem = ref(null);
 
 const storedJSON = localStorage.getItem('notes_json');
+
+// TOOD: REMOVE
 const parsedJSON = (() => {
   if (!storedJSON) return undefined;
   try {
@@ -122,7 +124,7 @@ const parsedJSON = (() => {
   }
 })();
 
-const noteTaker = ref(new NoteTaker(parsedJSON));
+const noteTaker = parsedJSON.allSections ? ref(NoteTaker.fromJSON(storedJSON)) : ref(new NoteTaker(parsedJSON));
 
 const allSections = computed(() => noteTaker.value.allSections);
 const grid = computed(() => {
@@ -183,7 +185,7 @@ watch(searchString, v => items.value = noteTaker.value.getSearchItems(v));
 
 watch(allSections, v => {
   setTimeout(() => {
-    localStorage.setItem('notes_json', JSON.stringify(v));
+    localStorage.setItem('notes_json', noteTaker.value.toJSON());
   });
 }, { deep: true });
 
