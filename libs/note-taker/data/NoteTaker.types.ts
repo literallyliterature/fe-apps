@@ -67,6 +67,14 @@ export type SearchItem = { title: string; exactMatch?: boolean } & ({
   cmd: 'todo.done';
   code: 'd',
   todo: Todo;
+} | {
+  cmd: 'context.remove-done';
+  code: 'rc';
+  context: Context;
+} | {
+  cmd: 'page.remove-done';
+  code: 'rp';
+  page: Page;
 });
 
 export type Command = SearchItem['cmd'];

@@ -120,6 +120,16 @@ function getContextSelectSearchResults(inputText: string, page: Page) {
     title: `Select context: ${context.title}`,
   }));
 
+  const removeAllDone: SearchItem = {
+    cmd: 'page.remove-done',
+    code: 'rp',
+    exactMatch: true,
+    page,
+    title: 'Remove done from page'
+  }
+
+  if (code === 'rp' && !additional) return [removeAllDone];
+
   if (additional) {
     const [ignore, contextType, remaining] = additional.match(/^(todo|ol|ul) (.+)?/) || [];
 
@@ -169,6 +179,16 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
     newItem.inputTitle = additional;
     return [newItem];
   }
+
+  const removeAllDone: SearchItem = {
+    cmd: 'context.remove-done',
+    code: 'rc',
+    exactMatch: true,
+    context,
+    title: 'Remove done from context'
+  }
+
+  if (code === 'rc' && !additional) return [removeAllDone];
 
   const doneItems: SearchItem[] = context.type !== 'todo' ?
     [] :
@@ -242,8 +262,10 @@ export class NoteTaker {
     if (cmd === 'section.select') return this.selectSection(searchItem.section);
     if (cmd === 'page.new') return this.newPage(searchItem.pageTitle || '', searchItem.section);
     if (cmd === 'page.select') return this.selectPage(searchItem.page);
+    if (cmd === 'page.remove-done') return this.removeDoneFromPage(searchItem.page);
     if (cmd === 'context.new') return this.newContext(searchItem.contextTitle || '', searchItem.contextType || '', searchItem.page);
     if (cmd === 'context.select') return this.selectContext(searchItem.context);
+    if (cmd === 'context.remove-done') return this.removeDoneFromContext(searchItem.context);
     if (cmd === 'todo.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'list-item.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'todo.done') return this.markAsDone(searchItem.todo);
@@ -306,6 +328,18 @@ export class NoteTaker {
     const newSection = { pages: [], title };
     this.allSections.push(newSection);
     this.selectSection(newSection);
+  }
+
+  removeDoneFromContext(context: Context) {
+    if (context.type !== 'todo') return;
+
+    if (context.items.some(i => i.done)) {
+      context.items = context.items.filter(i => !i.done);
+    }
+  }
+
+  removeDoneFromPage(page: Page) {
+    page.contexts.forEach((context) => this.removeDoneFromContext(context));
   }
 
   selectContext(context?: Context) {
