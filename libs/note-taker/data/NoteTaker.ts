@@ -501,16 +501,30 @@ export class NoteTaker {
 
   selectContext(context?: Context) {
     this.selectedContext = context;
+    if (this.selectedPage) this.selectedPage.activeContextTitle = context?.title;
   }
 
   selectPage(page?: Page) {
     this.selectedPage = page;
-    this.selectContext(page?.contexts?.[0]);
+    if (this.selectedSection) this.selectedSection.activePageTitle = page?.title;
+
+    const contextToAutoSelect = (() => {
+      if (!page?.contexts.length) return undefined;
+      if (page.activeContextTitle) return page.contexts.find(c => c.title === page.activeContextTitle);
+      return page.contexts[0];
+    })();
+    this.selectContext(contextToAutoSelect);
   }
 
   selectSection(section: Section) {
     this.selectedSection = section;
-    this.selectPage(section.pages[0] || null);
+    
+    const pageToAutoSelect = (() => {
+      if (!section.pages.length) return undefined;
+      if (section.activePageTitle) return section.pages.find(p => p.title === section.activePageTitle);
+      return section.pages[0];
+    })();
+    this.selectPage(pageToAutoSelect);
   }
 
   showHelpAlert() {

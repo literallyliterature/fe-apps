@@ -183,12 +183,15 @@ watch(selectedItem, (v) => {
 });
 watch(searchString, v => items.value = noteTaker.value.getSearchItems(v));
 
-watch(allSections, v => {
+const storeToLocalStorage = (() => {
   setTimeout(() => {
     localStorage.setItem('notes_json', noteTaker.value.toJSON());
   });
-}, { deep: true });
+});
 
+watch(grid, storeToLocalStorage, { deep: true });
+
+// @ts-ignore
 const input = useTemplateRef('userInput') as Ref<HTMLElement>;
 onMounted(() => {
   document.addEventListener("keydown", (event) => {

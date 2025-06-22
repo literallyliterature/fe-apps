@@ -17,11 +17,13 @@ export type Context = { title: string } & ({
 });
 
 export type Page = {
+  activeContextTitle?: string;
   contexts: Context[];
   title: string;
 };
 
 export type Section = {
+  activePageTitle?: string;
   pages: Page[];
   title: string;
 };
@@ -91,3 +93,10 @@ export type SearchItem = { title: string; exactMatch?: boolean } & ({
 });
 
 export type Command = SearchItem['cmd'];
+
+export type StoredJSON = {
+  allSections: Section[],
+  selectedSectionTitle?: string;
+  selectedPageTitle?: string;
+  selectedContextTitle?: string;
+}
