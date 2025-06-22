@@ -77,10 +77,14 @@ export type SearchItem = { title: string; exactMatch?: boolean } & ({
   page: Page;
 } | {
   cmd: 'clipboard.import';
-  code: 'im';
+  code: 'import';
 } | {
   cmd: 'clipboard.export';
-  code: 'ex';
+  code: 'export';
+} | {
+  cmd: 'context.sort',
+  code: 'sort',
+  context: Context
 });
 
 export type Command = SearchItem['cmd'];

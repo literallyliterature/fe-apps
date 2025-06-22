@@ -3,9 +3,26 @@ import fuzzy from 'fuzzy';
 import { type Context, type Page, type Section, type SearchItem, type Todo } from "./NoteTaker.types";
 import _ from 'lodash';
 
+const codes: Array<SearchItem['code']> = [
+  'ns',
+  's',
+  'np',
+  'p',
+  'nc',
+  'c',
+  'n',
+  'd',
+  'rc',
+  'rp',
+  'import',
+  'export',
+  'sort',
+];
 
 function parseInputText(inputText: string) {
-  const [ignore, code, additional] = inputText.match(/^(\w{1,2})\b ?(.+)?/) || [];
+  const regexOr = codes.join('|');
+  const matchRegex = new RegExp(`^(${regexOr})\\b ?(.+)?`);
+  const [ignore, code, additional] = inputText.match(matchRegex) || [];
   return { code, additional };
 }
 
@@ -178,6 +195,15 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
     newItem.exactMatch = true;
     newItem.inputTitle = additional;
     return [newItem];
+  } if (code === 'sort') {
+    const searchItem: SearchItem = {
+      cmd: 'context.sort',
+      code: 'sort',
+      context: context,
+      exactMatch: true,
+      title: 'Sort items',
+    };
+    return [searchItem];
   }
 
   const removeAllDone: SearchItem = {
@@ -338,9 +364,9 @@ export class NoteTaker {
 
     const { code, additional } = parseInputText(inputText);
     if (code === 'ex' && !additional) {
-      return [{ code: 'ex', cmd: 'clipboard.export', title: 'Export to clipboard', exactMatch: true }];
+      return [{ code: 'export', cmd: 'clipboard.export', title: 'Export to clipboard', exactMatch: true }];
     } else if (code === 'im' && !additional) {
-      return [{ code: 'im', cmd: 'clipboard.import', title: 'Import from clipboard', exactMatch: true }];
+      return [{ code: 'import', cmd: 'clipboard.import', title: 'Import from clipboard', exactMatch: true }];
     }
 
     items = getSectionSelectSearchResults(inputText, allSections);
@@ -371,6 +397,7 @@ export class NoteTaker {
     if (cmd === 'context.new') return this.newContext(searchItem.contextTitle || '', searchItem.contextType || '', searchItem.page);
     if (cmd === 'context.select') return this.selectContext(searchItem.context);
     if (cmd === 'context.remove-done') return this.removeDoneFromContext(searchItem.context);
+    if (cmd === 'context.sort') return this.sortItemsInContext(searchItem.context);
     if (cmd === 'todo.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'list-item.new') return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'todo.done') return this.markAsDone(searchItem.todo);
@@ -477,5 +504,10 @@ export class NoteTaker {
   selectSection(section: Section) {
     this.selectedSection = section;
     this.selectPage(section.pages[0] || null);
+  }
+
+  sortItemsInContext(context: Context) {
+    if (!context.items?.length) return;
+    context.items = _.orderBy(context.items, 'title');
   }
 }
