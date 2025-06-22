@@ -3,21 +3,25 @@ import fuzzy from 'fuzzy';
 import { type Context, type Page, type Section, type SearchItem, type Todo } from "./NoteTaker.types";
 import _ from 'lodash';
 
-const codes: Array<SearchItem['code']> = [
-  'ns',
-  's',
-  'np',
-  'p',
-  'nc',
-  'c',
-  'n',
-  'd',
-  'rc',
-  'rp',
-  'import',
-  'export',
-  'sort',
-];
+type code = SearchItem['code'];
+const codeDescriptions: { [K in code]: string } = {
+  ns: 'New section',
+  s: 'Section: Select or new',
+  np: 'New page',
+  p: 'Page: Select or new',
+  nc: 'New context',
+  c: 'Context: Select or new',
+  n: 'New item',
+  d: 'Mark todo item as done',
+  rc: 'Remove context',
+  rp: 'Remove page',
+  import: 'Import JSON',
+  export: 'Export as JSON',
+  sort: 'Sort items in context',
+  help: 'See available codes',
+};
+
+const codes = Object.keys(codeDescriptions) as code[];
 
 function parseInputText(inputText: string) {
   const regexOr = codes.join('|');
@@ -367,6 +371,8 @@ export class NoteTaker {
       return [{ code: 'export', cmd: 'clipboard.export', title: 'Export to clipboard', exactMatch: true }];
     } else if (code === 'im' && !additional) {
       return [{ code: 'import', cmd: 'clipboard.import', title: 'Import from clipboard', exactMatch: true }];
+    } else if (code === 'help' && !additional) {
+      return [{ code: 'help', cmd: 'help', title: codeDescriptions.help, exactMatch: true }]
     }
 
     items = getSectionSelectSearchResults(inputText, allSections);
@@ -404,6 +410,7 @@ export class NoteTaker {
 
     if (cmd === 'clipboard.import') return this.importFromClipboard();
     if (cmd === 'clipboard.export') return this.exportToClipboard();
+    if (cmd === 'help') return this.showHelpAlert();
   }
 
   // command handlers
@@ -504,6 +511,13 @@ export class NoteTaker {
   selectSection(section: Section) {
     this.selectedSection = section;
     this.selectPage(section.pages[0] || null);
+  }
+
+  showHelpAlert() {
+    const codeAndDescriptions = Object.entries(codeDescriptions);
+    const asStrings = codeAndDescriptions.map(([code, description]) => `${code}\t${description}`);
+    const joined = _.orderBy(asStrings).join('\n');
+    window.alert(joined);
   }
 
   sortItemsInContext(context: Context) {

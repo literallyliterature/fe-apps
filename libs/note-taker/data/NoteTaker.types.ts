@@ -85,6 +85,9 @@ export type SearchItem = { title: string; exactMatch?: boolean } & ({
   cmd: 'context.sort',
   code: 'sort',
   context: Context
+} | {
+  cmd: 'help',
+  code: 'help'
 });
 
 export type Command = SearchItem['cmd'];
