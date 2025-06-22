@@ -89,10 +89,14 @@
                   @delete="deleteContextItem(item)">
                   <v-checkbox
                     v-model="item.done"
-                    class="mt-n2"
+                    class="my-n1"
                     density="comfortable"
                     hide-details
-                    :label="item.title" />
+                    :label="item.title">
+                    <template #label="{ label }">
+                      <div class="my-2">{{ label }}</div>
+                    </template>
+                  </v-checkbox>
                 </EditAndDeleteButtons>
               </div>
 
