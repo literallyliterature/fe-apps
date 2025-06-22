@@ -12,6 +12,7 @@ const codeDescriptions: { [K in code]: string } = {
   nc: 'New context',
   c: 'Context: Select or new',
   n: 'New item',
+  '-': 'New item',
   d: 'Mark todo item as done',
   rc: 'Remove context',
   rp: 'Remove page',
@@ -25,7 +26,7 @@ const codes = Object.keys(codeDescriptions) as code[];
 
 function parseInputText(inputText: string) {
   const regexOr = codes.join('|');
-  const matchRegex = new RegExp(`^(${regexOr})\\b ?(.+)?`);
+  const matchRegex = new RegExp(`^(${regexOr}) ?(.+)?`);
   const [ignore, code, additional] = inputText.match(matchRegex) || [];
   return { code, additional };
 }
@@ -195,7 +196,8 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
     return { cmd: 'list-item.new', code: 'n', context, title: 'New list item' };
   })();
 
-  if (code === 'n') {
+  if (code === 'n' || code === '-') {
+    newItem.code = code;
     newItem.exactMatch = true;
     newItem.inputTitle = additional;
     return [newItem];

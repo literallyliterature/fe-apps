@@ -62,7 +62,7 @@ export type SearchItem = { title: string; exactMatch?: boolean } & ({
   inputTitle?: string;
 } | {
   cmd: 'list-item.new';
-  code: 'n',
+  code: 'n'|'-',
   context: Context;
   inputTitle?: string;
 } | {
