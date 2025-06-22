@@ -48,6 +48,19 @@
               </EditAndDeleteButtons>
             </div>
           </v-col>
+
+          <v-col style="min-width: 200px">
+            <div class="text-overline">Contexts</div>
+
+            <div
+              v-for="context in grid.contexts"
+              class="mb-1"
+              :class="context === grid.selectedContext ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'">
+              <EditAndDeleteButtons @click="selectContext(context)" @edit="editTitle(context)" @delete="deleteContext(context)">
+                {{ context.title }}
+              </EditAndDeleteButtons>
+            </div>
+          </v-col>
         </v-row>
       </v-container>
 
