@@ -1,5 +1,6 @@
 # TODOs
 
+- [ ] Make table of all different cmds and situations where they are applicable
 - [ ] Fix behaviour of having things after code without space
 - [ ] Add "status" for input field, to control available commands
 - [ ] Add "command" which basically restricts the search to existing commands (NOT "New ...")
