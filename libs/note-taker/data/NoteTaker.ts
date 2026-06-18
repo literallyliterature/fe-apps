@@ -27,8 +27,8 @@ const codes = Object.keys(codeDescriptions) as code[];
 function parseInputText(inputText: string) {
   const regexOr = codes.join('|');
   const matchRegex = new RegExp(`^(${regexOr}) ?(.+)?`);
-  const [ignore, code, additional] = inputText.match(matchRegex) || [];
-  return { code, additional };
+  const [_ignore, code, additional] = inputText.match(matchRegex) || [];
+  return { code: code as code | undefined, additional };
 }
 
 function getFuzzyResults(inputText: string, searchItems: SearchItem[]): SearchItem[] {
@@ -156,7 +156,7 @@ function getContextSelectSearchResults(inputText: string, page: Page) {
     return [removeAllDone];
 
   if (additional) {
-    const [ignore, contextType, remaining] = additional.match(/^(todo|ol|ul) (.+)?/) || [];
+    const [_ignore, contextType, remaining] = additional.match(/^(todo|ol|ul) (.+)?/) || [];
 
     const exactNewItem: SearchItem = {
       cmd: 'context.new',
@@ -207,7 +207,8 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
     newItem.exactMatch = true;
     newItem.inputTitle = additional;
     return [newItem];
-  } if (code === 'sort') {
+  }
+  else if (code === 'sort') {
     const searchItem: SearchItem = {
       cmd: 'context.sort',
       code: 'sort',
@@ -258,7 +259,7 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
   return [newItem];
 }
 
-function mergeWithCommonTitles(first, second) {
+function mergeWithCommonTitles(first: unknown, second: unknown) {
   return _.mergeWith(first, second, (firstItem, secondItem) => {
     if (!_.isArray(firstItem) || !_.isArray(secondItem))
       return undefined; // default merge behaviour
@@ -393,10 +394,11 @@ export class NoteTaker {
     const exactMatchItems = () => items.filter(item => item.exactMatch);
 
     const { code, additional } = parseInputText(inputText);
-    if (code === 'ex' && !additional) {
+
+    if (code === 'export' && !additional) {
       return [{ code: 'export', cmd: 'clipboard.export', title: 'Export to clipboard', exactMatch: true }];
     }
-    else if (code === 'im' && !additional) {
+    else if (code === 'import' && !additional) {
       return [{ code: 'import', cmd: 'clipboard.import', title: 'Import from clipboard', exactMatch: true }];
     }
     else if (code === 'help' && !additional) {

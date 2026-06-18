@@ -2,15 +2,19 @@
 import type { Context, Page, SearchItem, Section, Todo } from '../data/NoteTaker.types';
 import _ from 'lodash';
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
-import { NoteTaker } from '../data/NoteTaker';
+import { useRoute } from 'vue-router';
 
+import { NoteTaker } from '../data/NoteTaker';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const selectedItem = ref(null);
 
+const route = useRoute();
+const jsonFromQueryParam = route.query.notes_json;
+
 const storedJSON = localStorage.getItem('notes_json');
 
-const noteTaker = ref(NoteTaker.fromJSON(storedJSON));
+const noteTaker = ref(NoteTaker.fromJSON(_.isString(jsonFromQueryParam) ? jsonFromQueryParam : storedJSON));
 
 const grid = computed(() => {
   const { allSections, selectedSection, selectedPage, selectedContext } = noteTaker.value;
@@ -129,7 +133,7 @@ onMounted(() => {
       </div>
 
       <v-container class="fill-height">
-        <v-row justify="space-around" style="overflow-y: scroll">
+        <v-row justify="space-around" style="overflow-y: auto">
           <v-col style="min-width: 200px">
             <!-- Sections -->
             <div class="text-overline">
@@ -184,7 +188,7 @@ onMounted(() => {
         </v-row>
       </v-container>
 
-      <div style="overflow-y: scroll">
+      <div style="overflow-y: auto">
         <div style="display: grid; grid: auto / 1fr 1fr; gap: 16px">
           <div v-for="(context, contextIndex) in grid.contexts" :key="contextIndex" class="mb-8">
             <v-card
