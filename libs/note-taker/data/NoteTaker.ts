@@ -7,6 +7,7 @@ type code = SearchItem['code'];
 const codeDescriptions: { [K in code]: string } = {
   'ns': 'New section',
   's': 'Section: Select or new',
+  'focus': 'Focus on specific item',
   'np': 'New page',
   'p': 'Page: Select or new',
   'nc': 'New context',
@@ -231,6 +232,14 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
   if (code === 'rc' && !additional)
     return [removeAllDone];
 
+  const focusItems: SearchItem[] = (context.type !== 'todo' || code !== 'focus')
+    ? []
+    : context.items.map(todo => ({
+        cmd: 'todo.focus',
+        code: 'focus',
+        todo,
+        title: `Focus: ${todo.title}`,
+      }));
   const doneItems: SearchItem[] = context.type !== 'todo'
     ? []
     : context.items.map(todo => ({
@@ -249,6 +258,7 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
 
   const searchItems = [
     newItem,
+    ...focusItems,
     ...doneItems,
   ];
   const fuzzyResults = getFuzzyResults(inputText, searchItems);
@@ -297,6 +307,7 @@ export class NoteTaker {
   selectedSection?: Section;
   selectedPage?: Page;
   selectedContext?: Context;
+  focusedItem?: Todo;
 
   constructor(allSections = []) {
     this.allSections = allSections;
@@ -387,6 +398,8 @@ export class NoteTaker {
   }
 
   getSearchItems(inputText: string): SearchItem[] {
+    if (inputText === '') return [];
+
     const { allSections, selectedSection, selectedPage, selectedContext } = this;
 
     let items: SearchItem[] = [];
@@ -457,6 +470,8 @@ export class NoteTaker {
       return this.newListItem(searchItem.inputTitle || '', searchItem.context);
     if (cmd === 'todo.done')
       return this.markAsDone(searchItem.todo);
+    if (cmd === 'todo.focus')
+      return this.focusedItem = searchItem.todo;
 
     if (cmd === 'clipboard.import')
       return this.importFromClipboard();
@@ -470,6 +485,47 @@ export class NoteTaker {
 
   markAsDone(todo: Todo) {
     todo.done = true;
+  }
+
+  changeFocusedItem(upOrDown: 'up' | 'down') {
+    if (!this.focusedItem) return;
+    if (!this.selectedContext) return;
+
+    const { type, items } = this.selectedContext;
+
+    if (type !== 'todo') return;
+
+    const indexOfFocusedItem = items.findIndex(item => item === this.focusedItem);
+    let newIndex = indexOfFocusedItem
+      + (upOrDown === 'up' ? -1 : 1);
+
+    if (newIndex === -1) newIndex = items.length - 1;
+    else if (newIndex === items.length) newIndex = 0;
+
+    this.focusedItem = items[newIndex];
+  }
+
+  moveFocusedItem(upOrDown: 'up' | 'down') {
+    if (!this.focusedItem) return;
+    if (!this.selectedContext) return;
+
+    const { type, items } = this.selectedContext;
+
+    if (type !== 'todo') return;
+
+    const indexOfFocusedItem = items.findIndex(item => item === this.focusedItem);
+    let newIndex = indexOfFocusedItem
+      + (upOrDown === 'up' ? -1 : 1);
+
+    if (newIndex === -1) newIndex = items.length - 1;
+    else if (newIndex === items.length) newIndex = 0;
+
+    const itemAtNewIndex = items[newIndex]!;
+    this.selectedContext.items = items.map((_item, index) => {
+      if (index === newIndex) return this.focusedItem!;
+      else if (index === indexOfFocusedItem) return itemAtNewIndex;
+      else return _item;
+    });
   }
 
   newContext(inputTitle: string, inputContextType: string, page: Page) {
@@ -568,6 +624,10 @@ export class NoteTaker {
     this.selectedContext = context;
     if (this.selectedPage)
       this.selectedPage.activeContextTitle = context?.title;
+
+    this.focusedItem = (context?.type === 'todo')
+      ? context.items[0]
+      : undefined;
   }
 
   selectPage(page?: Page) {

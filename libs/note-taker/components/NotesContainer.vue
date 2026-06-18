@@ -17,7 +17,7 @@ const storedJSON = localStorage.getItem('notes_json');
 const noteTaker = ref(NoteTaker.fromJSON(_.isString(jsonFromQueryParam) ? jsonFromQueryParam : storedJSON));
 
 const grid = computed(() => {
-  const { allSections, selectedSection, selectedPage, selectedContext } = noteTaker.value;
+  const { allSections, focusedItem, selectedSection, selectedPage, selectedContext } = noteTaker.value;
   return {
     sections: allSections,
     selectedSection,
@@ -27,6 +27,8 @@ const grid = computed(() => {
 
     contexts: selectedPage?.contexts || [],
     selectedContext,
+
+    focusedItem,
   };
 });
 
@@ -107,6 +109,20 @@ onMounted(() => {
     }
   });
 });
+
+function doIfSearchEmpty(evt: Event, operation: () => void) {
+  if (searchString.value.trim() === '') {
+    evt.preventDefault();
+    evt.stopPropagation();
+    operation();
+    setTimeout(() => searchString.value = '');
+  }
+}
+
+function toggleFocusedItem() {
+  const { focusedItem } = grid.value;
+  if (focusedItem) focusedItem.done = !focusedItem.done;
+}
 </script>
 
 <template>
@@ -129,6 +145,12 @@ onMounted(() => {
           return-object
           style="max-width: 600px"
           variant="outlined"
+          @keydown.alt.down="doIfSearchEmpty($event, () => noteTaker.moveFocusedItem('down'))"
+          @keydown.alt.up="doIfSearchEmpty($event, () => noteTaker.moveFocusedItem('up'))"
+          @keydown.exact.down="doIfSearchEmpty($event, () => noteTaker.changeFocusedItem('down'))"
+          @keydown.exact.up="doIfSearchEmpty($event, () => noteTaker.changeFocusedItem('up'))"
+          @keydown.enter="doIfSearchEmpty($event, toggleFocusedItem)"
+          @keydown.space="doIfSearchEmpty($event, toggleFocusedItem)"
         />
       </div>
 
@@ -219,6 +241,7 @@ onMounted(() => {
                   <v-checkbox
                     v-model="item.done"
                     class="my-n1"
+                    :class="{ 'font-weight-bold': item === grid.focusedItem }"
                     density="comfortable"
                     hide-details
                     :label="item.title"

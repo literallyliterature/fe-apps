@@ -66,6 +66,10 @@ export type SearchItem = { title: string, exactMatch?: boolean } & ({
   context: Context
   inputTitle?: string
 } | {
+  cmd: 'todo.focus'
+  code: 'focus'
+  todo: Todo
+} | {
   cmd: 'todo.done'
   code: 'd'
   todo: Todo
