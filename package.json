@@ -23,6 +23,7 @@
     "vuetify": "^3.7.19"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^9.0.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@tsconfig/node22": "^22.0.0",
     "@types/lodash": "^4.17.16",
@@ -30,6 +31,7 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/tsconfig": "^0.7.0",
+    "eslint": "^10.5.0",
     "gh-pages": "^6.3.0",
     "sass": "^1.86.0",
     "sass-embedded": "^1.86.0",
