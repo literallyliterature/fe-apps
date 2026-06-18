@@ -26,6 +26,7 @@ const codes = Object.keys(codeDescriptions) as code[];
 
 function parseInputText(inputText: string) {
   const regexOr = codes.join('|');
+  // eslint-disable-next-line regexp/prefer-character-class
   const matchRegex = new RegExp(`^(${regexOr}) ?(.+)?`);
   const [_ignore, code, additional] = inputText.match(matchRegex) || [];
   return { code: code as code | undefined, additional };
