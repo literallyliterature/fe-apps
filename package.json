@@ -1,15 +1,15 @@
 {
   "name": "fe-apps",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "description": "A monorepo for personal projects",
+  "author": "Sahitya Beri <sahityaberi@gmail.com>",
+  "license": "ISC",
   "scripts": {
     "dev": "npm run dev --workspace apps/apps-host",
     "build": "npm run build-only --workspace apps/apps-host",
     "deploy": "npm run build && npx gh-pages -d apps/apps-host/dist"
   },
-  "author": "Sahitya Beri <sahityaberi@gmail.com>",
-  "license": "ISC",
   "workspaces": [
     "apps/*",
     "libs/*"

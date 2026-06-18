@@ -1,5 +1,5 @@
-import { NoteTaker } from "./NoteTaker";
-import { SearchItem } from "./NoteTaker.types";
+import type { NoteTaker } from './NoteTaker';
+import type { SearchItem } from './NoteTaker.types';
 
 enum CommandSituation {
   Default,
@@ -7,7 +7,7 @@ enum CommandSituation {
 };
 
 export class CommandParser {
-  noteTaker: NoteTaker; 
+  noteTaker: NoteTaker;
   situation: CommandSituation;
 
   constructor(noteTaker: NoteTaker) {
@@ -18,7 +18,8 @@ export class CommandParser {
   getSearchItems(inputText: string): SearchItem[] {
     const { noteTaker, situation } = this;
     if (situation === CommandSituation.Default) {
-      if (!noteTaker.allSections.length) return getNewSection()
+      if (!noteTaker.allSections.length)
+        return getNewSection();
     }
     return [];
   }
@@ -26,7 +27,8 @@ export class CommandParser {
   selectSearchItem(searchItem: SearchItem) {
     if (searchItem.code) {
 
-    } else {
+    }
+    else {
       const unreachable: never = searchItem;
     }
   }

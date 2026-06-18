@@ -1,4 +1,4 @@
-import { SearchResult } from "./NoteTaker.types";
+import type { SearchResult } from './NoteTaker.types';
 
 export class Context {
   title: string;

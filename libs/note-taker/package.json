@@ -1,8 +1,8 @@
 {
   "name": "note-taker",
+  "type": "module",
   "version": "1.0.0",
   "description": "A lib for a note-taker app",
-  "type": "module",
   "scripts": {
     "test": "vitest"
   }

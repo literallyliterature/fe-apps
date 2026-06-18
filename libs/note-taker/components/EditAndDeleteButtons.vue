@@ -1,3 +1,16 @@
+<script lang="ts" setup>
+const {
+  defaultOpacity = '0.8',
+  noClickListener = false,
+  showDeleteItems = false,
+} = defineProps<{
+  defaultOpacity?: string
+  noClickListener?: boolean
+  showDeleteItems?: boolean
+}>();
+defineEmits(['click', 'edit', 'delete', 'delete-items']);
+</script>
+
 <template>
   <v-hover>
     <template #default="{ isHovering, props }">
@@ -11,35 +24,30 @@
         <v-col
           cols="auto"
           style="transition: opacity 0.1s"
-          :style="!isHovering ? 'opacity: 0' : ''">
+          :style="!isHovering ? 'opacity: 0' : ''"
+        >
           <v-btn
             v-if="showDeleteItems"
-            class="ml-1" icon size="x-small" variant="text" @click="$emit('delete-items')">
-            <v-icon size="small">fa-solid fa-list-check</v-icon>
+            class="ml-1" icon size="x-small" variant="text" @click="$emit('delete-items')"
+          >
+            <v-icon size="small">
+              fa-solid fa-list-check
+            </v-icon>
           </v-btn>
 
           <v-btn class="ml-1" icon size="x-small" variant="text" @click="$emit('edit')">
-            <v-icon size="small">fa-solid fa-pencil-alt</v-icon>
+            <v-icon size="small">
+              fa-solid fa-pencil-alt
+            </v-icon>
           </v-btn>
-          
+
           <v-btn icon size="x-small" variant="text" @click="$emit('delete')">
-            <v-icon size="small">fa-solid fa-trash</v-icon>
+            <v-icon size="small">
+              fa-solid fa-trash
+            </v-icon>
           </v-btn>
         </v-col>
       </v-row>
     </template>
   </v-hover>
 </template>
-
-<script lang="ts" setup>
-defineEmits(['click', 'edit', 'delete', 'delete-items']);
-const {
-  defaultOpacity = '0.8',
-  noClickListener = false,
-  showDeleteItems = false,
-} = defineProps<{
-  defaultOpacity?: string,
-  noClickListener?: boolean,
-  showDeleteItems?: boolean,
-}>();
-</script>

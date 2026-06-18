@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { CommandParser } from "./CommandParser";
-import { NoteTaker } from "./NoteTaker";
+import { beforeEach, describe, expect, it } from 'vitest';
+import { CommandParser } from './CommandParser';
+import { NoteTaker } from './NoteTaker';
 
-describe('CommandParser', () => {
+describe('commandParser', () => {
   let noteTaker: NoteTaker;
   let inputText: string;
 
@@ -19,8 +19,9 @@ describe('CommandParser', () => {
 
       inputText = 'a new section';
       expectEqual([expect.objectContaining({
-        cmd: 'section.new', sectionTitle: 'a new section',
-      })])
+        cmd: 'section.new',
+        sectionTitle: 'a new section',
+      })]);
     });
   });
 });

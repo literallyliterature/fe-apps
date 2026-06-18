@@ -1,25 +1,25 @@
 export { getSudoku as createGame } from 'sudoku-gen';
 
-export type CellRange = 0|1|2|3|4|5|6|7|8;
-export type ValueRange = '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9';
-export type UserInputValueRange = ValueRange|' ';
-export type SudokuCell = {
-  column: CellRange,
-  correctValue: ValueRange,
-  focused: boolean,
-  index: number,
-  notedNumbers: { [key: string]: boolean },
-  original: UserInputValueRange,
-  row: CellRange,
-  showAsError: boolean,
-  square: CellRange, // starting with 0|1|2 in the top row
-  userInput: UserInputValueRange,
-};
-export type GameStatus = {
-  duplicates?: SudokuCell[],
-  mistakes?: SudokuCell[],
-  complete?: boolean,
-};
+export type CellRange = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type ValueRange = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+export type UserInputValueRange = ValueRange | ' ';
+export interface SudokuCell {
+  column: CellRange
+  correctValue: ValueRange
+  focused: boolean
+  index: number
+  notedNumbers: { [key: string]: boolean }
+  original: UserInputValueRange
+  row: CellRange
+  showAsError: boolean
+  square: CellRange // starting with 0|1|2 in the top row
+  userInput: UserInputValueRange
+}
+export interface GameStatus {
+  duplicates?: SudokuCell[]
+  mistakes?: SudokuCell[]
+  complete?: boolean
+}
 
 export function calculateColumnFromIndex(index: number): CellRange {
   return index % 9 as CellRange;
@@ -44,8 +44,8 @@ export function extractSudokuCells({
   gameString,
   originalsString,
 }: {
-  gameString: string,
-  originalsString: string,
+  gameString: string
+  originalsString: string
 }): SudokuCell[] {
   return gameString.split('').map((correctValue, index) => ({
     column: calculateColumnFromIndex(index),
