@@ -2,9 +2,13 @@
 import Minesweeper from './Minesweeper.vue';
 
 export default {
-  name: 'App',
   components: {
     Minesweeper,
+  },
+  computed: {
+    remainingMines() {
+      return (this.numberOfMines || 0) - (this.flaggedCells || 0);
+    },
   },
   data() {
     return {
@@ -19,17 +23,6 @@ export default {
       snackbarColour: 'error',
       snackbarText: '',
     };
-  },
-  computed: {
-    remainingMines() {
-      return (this.numberOfMines || 0) - (this.flaggedCells || 0);
-    },
-  },
-  watch: {
-    minesKey() {
-      this.flaggedCells = 0;
-      this.showingSnackbar = false;
-    },
   },
   methods: {
     copyToClipboard(containerid) {
@@ -73,6 +66,13 @@ export default {
         if (minesKeyAtStartOfFn === this.minesKey)
           this.showingSnackbar = true;
       }
+    },
+  },
+  name: 'App',
+  watch: {
+    minesKey() {
+      this.flaggedCells = 0;
+      this.showingSnackbar = false;
     },
   },
 };

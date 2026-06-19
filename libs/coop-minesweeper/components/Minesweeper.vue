@@ -7,34 +7,6 @@ function getRandomInt(max, min = 0) {
 }
 
 export default {
-  props: {
-    mobileMode: {
-      type: Boolean,
-      default: false,
-    },
-    numberOfCols: {
-      type: Number,
-      default: 30,
-    },
-    numberOfMines: {
-      type: Number,
-      default: 99,
-    },
-    numberOfRows: {
-      type: Number,
-      default: 16,
-    },
-  },
-
-  data: () => ({
-    blocks: [],
-    connHoverRow: -1,
-    connHoverCol: -1,
-    numberOfFlaggedCells: 0,
-    preventHoverEmit: false,
-    messedUp: false,
-    zeroClicks: true,
-  }),
 
   computed: {
     flattenedBlocks() {
@@ -50,17 +22,6 @@ export default {
     },
   },
 
-  watch: {
-    isGameWon(val) {
-      if (val)
-        this.$emit('game-won');
-    },
-    messedUp(val) {
-      if (val)
-        this.$emit('game-lost');
-    },
-  },
-
   created() {
     this.blocks = Array.from(
       { length: this.numberOfRows },
@@ -68,7 +29,38 @@ export default {
     );
   },
 
+  data: () => ({
+    blocks: [],
+    connHoverRow: -1,
+    connHoverCol: -1,
+    numberOfFlaggedCells: 0,
+    preventHoverEmit: false,
+    messedUp: false,
+    zeroClicks: true,
+  }),
   methods: {
+    getAdjacentCells(row, col) {
+      const surroundingCells = [];
+
+    for (const [r, c] of [ // eslint-disable-line
+        [row - 1, col],
+        [row + 1, col],
+        [row, col - 1],
+        [row, col + 1],
+      ]) {
+        if (
+          (r !== -1)
+          && (c !== -1)
+          && (r !== this.numberOfRows)
+          && (c !== this.numberOfCols)
+          && (r !== row || c !== col)
+        ) {
+          surroundingCells.push([r, c]);
+        }
+      }
+
+      return surroundingCells;
+    },
     getColour(row, col) {
       if (this.messedUp)
         return 'error darken-2';
@@ -78,19 +70,35 @@ export default {
         return '#363636';
       return '#222';
     },
+    getSurroundingCells(row, col) {
+      const surroundingCells = [];
+
+    for (const rd of [-1, 0, 1]) { // eslint-disable-line
+        for (const cd of [-1, 0, 1]) {
+          const r = row + rd;
+          const c = col + cd;
+
+          if (
+            (r !== -1)
+            && (c !== -1)
+            && (r !== this.numberOfRows)
+            && (c !== this.numberOfCols)
+            && (r !== row || c !== col)
+          ) {
+            surroundingCells.push([r, c]);
+          }
+        }
+      }
+
+      return surroundingCells;
+    },
     getText(cell) {
       return cell.isVisible ? cell.surrounding : '-';
     },
-    markRandomBlockAsMine() {
-      const randomCol = getRandomInt(this.numberOfCols);
-      const randomRow = getRandomInt(this.numberOfRows);
-
-      if (this.blocks[randomRow][randomCol].isMine || this.blocks[randomRow][randomCol].preventMine) {
-        this.markRandomBlockAsMine();
-      }
-      else {
-        this.blocks[randomRow][randomCol].isMine = true;
-      }
+    hasZeroSurrounding(row, col) {
+      const cellsInRow = this.blocks[row] || [];
+      const cell = cellsInRow[col] || {};
+      return cell.surrounding === 0;
     },
     initialiseBlocks() {
       const vm = this;
@@ -107,30 +115,6 @@ export default {
         action: 'init-blocks',
         blocks: this.blocks,
       });
-    },
-    setBlocks(blocks) {
-      this.zeroClicks = false;
-      this.blocks = blocks;
-    },
-    setConnHover(row, col) {
-      this.connHoverRow = row;
-      this.connHoverCol = col;
-    },
-    sendHoverData(row, col) {
-      if (this.preventHoverEmit)
-        return;
-
-      this.$emit('send', {
-        action: 'hover',
-        col,
-        row,
-      });
-
-      const vm = this;
-      vm.preventHoverEmit = true;
-      setTimeout(() => {
-        vm.preventHoverEmit = false;
-      }, 100);
     },
     leftClick(row, col, doNotEmit = false) {
       if (this.messedUp)
@@ -150,8 +134,8 @@ export default {
       if (!doNotEmit) {
         this.$emit('send', {
           action: 'left-click',
-          row,
           col,
+          row,
         });
       }
 
@@ -178,18 +162,16 @@ export default {
         });
       }
     },
-    hasZeroSurrounding(row, col) {
-      const cellsInRow = this.blocks[row] || [];
-      const cell = cellsInRow[col] || {};
-      return cell.surrounding === 0;
-    },
-    preventMinesOnSurroundingBlocks(row, col) {
-      const vm = this;
-      const surroundingBlocks = this.getSurroundingCells(row, col);
-      vm.blocks[row][col].preventMine = true;
-      surroundingBlocks.forEach(([r, c]) => {
-        vm.blocks[r][c].preventMine = true;
-      });
+    markRandomBlockAsMine() {
+      const randomCol = getRandomInt(this.numberOfCols);
+      const randomRow = getRandomInt(this.numberOfRows);
+
+      if (this.blocks[randomRow][randomCol].isMine || this.blocks[randomRow][randomCol].preventMine) {
+        this.markRandomBlockAsMine();
+      }
+      else {
+        this.blocks[randomRow][randomCol].isMine = true;
+      }
     },
     middleClick(row, col, doNotEmit) {
       const cell = this.blocks[row][col];
@@ -200,10 +182,18 @@ export default {
       if (!doNotEmit) {
         this.$emit('send', {
           action: 'middle-click',
-          row,
           col,
+          row,
         });
       }
+    },
+    preventMinesOnSurroundingBlocks(row, col) {
+      const vm = this;
+      const surroundingBlocks = this.getSurroundingCells(row, col);
+      vm.blocks[row][col].preventMine = true;
+      surroundingBlocks.forEach(([r, c]) => {
+        vm.blocks[r][c].preventMine = true;
+      });
     },
     rightClick(row, col, doNotEmit = false) {
       const cell = this.blocks[row][col];
@@ -219,54 +209,34 @@ export default {
       if (!doNotEmit) {
         this.$emit('send', {
           action: 'right-click',
-          row,
           col,
+          row,
         });
       }
     },
-    getAdjacentCells(row, col) {
-      const surroundingCells = [];
+    sendHoverData(row, col) {
+      if (this.preventHoverEmit)
+        return;
 
-    for (const [r, c] of [ // eslint-disable-line
-        [row - 1, col],
-        [row + 1, col],
-        [row, col - 1],
-        [row, col + 1],
-      ]) {
-        if (
-          (r !== -1)
-          && (c !== -1)
-          && (r !== this.numberOfRows)
-          && (c !== this.numberOfCols)
-          && (r !== row || c !== col)
-        ) {
-          surroundingCells.push([r, c]);
-        }
-      }
+      this.$emit('send', {
+        action: 'hover',
+        col,
+        row,
+      });
 
-      return surroundingCells;
+      const vm = this;
+      vm.preventHoverEmit = true;
+      setTimeout(() => {
+        vm.preventHoverEmit = false;
+      }, 100);
     },
-    getSurroundingCells(row, col) {
-      const surroundingCells = [];
-
-    for (const rd of [-1, 0, 1]) { // eslint-disable-line
-        for (const cd of [-1, 0, 1]) {
-          const r = row + rd;
-          const c = col + cd;
-
-          if (
-            (r !== -1)
-            && (c !== -1)
-            && (r !== this.numberOfRows)
-            && (c !== this.numberOfCols)
-            && (r !== row || c !== col)
-          ) {
-            surroundingCells.push([r, c]);
-          }
-        }
-      }
-
-      return surroundingCells;
+    setBlocks(blocks) {
+      this.zeroClicks = false;
+      this.blocks = blocks;
+    },
+    setConnHover(row, col) {
+      this.connHoverRow = row;
+      this.connHoverCol = col;
     },
     setNumberOfSurroundingMines(row, col) {
       if (this.blocks[row][col].isMine)
@@ -276,6 +246,36 @@ export default {
       const cellsWithMines = cellsToCheck.filter(([r, c]) => !!this.blocks[r][c].isMine);
 
       this.blocks[row][col].surrounding = cellsWithMines.length;
+    },
+  },
+
+  props: {
+    mobileMode: {
+      default: false,
+      type: Boolean,
+    },
+    numberOfCols: {
+      default: 30,
+      type: Number,
+    },
+    numberOfMines: {
+      default: 99,
+      type: Number,
+    },
+    numberOfRows: {
+      default: 16,
+      type: Number,
+    },
+  },
+
+  watch: {
+    isGameWon(val) {
+      if (val)
+        this.$emit('game-won');
+    },
+    messedUp(val) {
+      if (val)
+        this.$emit('game-lost');
     },
   },
 };

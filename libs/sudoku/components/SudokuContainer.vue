@@ -1,10 +1,4 @@
 <script lang="ts">
-import type {
-  CellRange,
-  SudokuCell as SudokuCellType,
-  UserInputValueRange,
-  ValueRange,
-} from '../data/sudoku.utils';
 import {
   cloneDeep,
   flatten,
@@ -12,6 +6,14 @@ import {
   uniqBy,
 } from 'lodash';
 import { computed, defineComponent, ref, useTemplateRef } from 'vue';
+
+import type {
+  CellRange,
+  SudokuCell as SudokuCellType,
+  UserInputValueRange,
+  ValueRange,
+} from '../data/sudoku.utils';
+
 import {
   createGame,
   extractSudokuCells,
@@ -19,10 +21,16 @@ import {
 import SudokuCell from './SudokuCell.vue';
 import SudokuControls from './SudokuControls.vue';
 
-type SudokuGameDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
-type UserActionArrow = 'left' | 'up' | 'right' | 'down';
-type UserActionDiagonals = 'up-left' | 'up-right' | 'down-left' | 'down-right';
-type UserAction = UserActionArrow | UserActionDiagonals | ValueRange | 'del' | 'remove-focus';
+interface CheckMistakesInput {
+  colIndex: number
+  rowIndex: number
+  squareCol: number
+  squareRow: number
+}
+interface InputRowAndCol {
+  col: CellRange | undefined
+  row: CellRange | undefined
+}
 interface SavedState {
   cells: SudokuCellType[][]
   label: string
@@ -30,31 +38,25 @@ interface SavedState {
 interface SudokuGame {
   cells: SudokuCellType[][]
   difficulty: SudokuGameDifficulty
-  focusedCol: undefined | CellRange
-  focusedRow: undefined | CellRange
+  focusedCol: CellRange | undefined
+  focusedRow: CellRange | undefined
   gameString: string
   originalsString: string
 }
-interface InputRowAndCol {
-  row: undefined | CellRange
-  col: undefined | CellRange
-}
-interface CheckMistakesInput {
-  squareRow: number
-  squareCol: number
-  colIndex: number
-  rowIndex: number
-}
+type SudokuGameDifficulty = 'easy' | 'expert' | 'hard' | 'medium';
+type UserAction = 'del' | 'remove-focus' | UserActionArrow | UserActionDiagonals | ValueRange;
+type UserActionArrow = 'down' | 'left' | 'right' | 'up';
+type UserActionDiagonals = 'down-left' | 'down-right' | 'up-left' | 'up-right';
 
 export default defineComponent({
-  name: 'SudokuContainer',
   components: {
     SudokuCell,
     SudokuControls,
   },
+  name: 'SudokuContainer',
   setup() {
     const game = ref<null | SudokuGame>(null);
-    const gameStatus = ref<'uninitialised' | 'started' | 'completed'>('uninitialised');
+    const gameStatus = ref<'completed' | 'started' | 'uninitialised'>('uninitialised');
     const inNotesMode = ref(false);
     const mistakesToShow = ref<InputRowAndCol[]>([]);
     const newSaveStateLabel = ref('');
@@ -176,15 +178,15 @@ export default defineComponent({
         return;
 
       savedStates.value.push({
-        label,
         cells: cloneDeep(game.value?.cells) || [],
+        label,
       });
     };
 
     const saveUndoState = (clearRedos = true): void => {
       savedUndoStates.value.push({
-        label: (new Date()).toString(),
         cells: cloneDeep(game.value?.cells) || [],
+        label: (new Date()).toString(),
       });
       if (clearRedos)
         savedRedoStates.value = [];
@@ -195,15 +197,15 @@ export default defineComponent({
         return;
 
       savedRedoStates.value.push({
-        label: (new Date()).toString(),
         cells: cloneDeep(game.value?.cells) || [],
+        label: (new Date()).toString(),
       });
       const restoredCells = savedUndoStates.value.pop();
       if (restoredCells)
         restoreState(restoredCells.cells);
     };
 
-    const setFocusedRowAndCol = ({ row, col }: InputRowAndCol): void => {
+    const setFocusedRowAndCol = ({ col, row }: InputRowAndCol): void => {
       if (game.value && col !== undefined)
         game.value.focusedCol = col;
       if (game.value && row !== undefined)
@@ -221,10 +223,10 @@ export default defineComponent({
       const { key } = e;
 
       const keyToActionMapping = {
+        ArrowDown: 'down',
         ArrowLeft: 'left',
         ArrowRight: 'right',
         ArrowUp: 'up',
-        ArrowDown: 'down',
         Backspace: 'del',
         Delete: 'del',
       };
@@ -242,8 +244,8 @@ export default defineComponent({
 
       const {
         cells,
-        focusedRow,
         focusedCol,
+        focusedRow,
       } = game.value;
       if (focusedRow === undefined || focusedCol === undefined)
         return;
@@ -296,7 +298,7 @@ export default defineComponent({
           }
         }
       }
-      else if (['up-left', 'up-right', 'down-left', 'down-right'].includes(action)) {
+      else if (['down-left', 'down-right', 'up-left', 'up-right'].includes(action)) {
         const actions = action.split('-');
         actions.forEach(a => triggerUserAction(a as UserActionDiagonals, ctrlKey));
       }
@@ -314,19 +316,19 @@ export default defineComponent({
     const checkForMistakes = (): void => {
       const flattenedMistakes = flattenedCells.value.filter(cell => cell.userInput !== cell.original
         && cell.correctValue !== cell.userInput)
-        .map(cell => ({ row: cell.row, col: cell.column }));
-      mistakesToShow.value = uniqBy(flattenedMistakes, ({ row, col }) => `${row}-${col}`);
+        .map(cell => ({ col: cell.column, row: cell.row }));
+      mistakesToShow.value = uniqBy(flattenedMistakes, ({ col, row }) => `${row}-${col}`);
     };
 
     const checkIfCellHasAMistake = ({
-      squareRow,
-      squareCol,
       colIndex,
       rowIndex,
+      squareCol,
+      squareRow,
     }: CheckMistakesInput): boolean => {
       const c = getColIndex(squareCol, colIndex);
       const r = getRowIndex(squareRow, rowIndex);
-      return mistakesToShow.value.some(({ row, col }) => row === r && col === c);
+      return mistakesToShow.value.some(({ col, row }) => row === r && col === c);
     };
 
     const removeAdjacentNotes = (cell: SudokuCellType): void => {
@@ -346,41 +348,41 @@ export default defineComponent({
     };
 
     return {
+      allCols,
+      allRows,
+      allSquares,
+      checkForMistakes,
+      checkIfCellHasAMistake,
+      checkIfGameIsCompleted,
+      flattenedCells,
       game,
       gameStatus,
+      getColIndex,
+      getRowIndex,
+      initialiseGame,
       inNotesMode,
       mistakesToShow,
       newSaveStateLabel,
-      savedStates,
+      redoState,
+      removeAdjacentNotes,
+      resetSaveInput,
+      restoreState,
+      saveCurrentState,
       savedRedoStates,
+      savedStates,
       savedUndoStates,
+      saveState,
+      saveUndoState,
       selectedDifficulty,
+      setFocusedRowAndCol,
       showingMenu,
       showingSnackbar,
       showNewSaveInput,
       snackbarColour,
       snackbarText,
-      flattenedCells,
-      allRows,
-      allCols,
-      allSquares,
-      getColIndex,
-      getRowIndex,
-      initialiseGame,
-      redoState,
-      restoreState,
-      resetSaveInput,
-      saveState,
-      saveCurrentState,
-      saveUndoState,
-      undoState,
-      setFocusedRowAndCol,
       triggerKeyPress,
       triggerUserAction,
-      checkIfGameIsCompleted,
-      checkForMistakes,
-      checkIfCellHasAMistake,
-      removeAdjacentNotes,
+      undoState,
     };
   },
 });

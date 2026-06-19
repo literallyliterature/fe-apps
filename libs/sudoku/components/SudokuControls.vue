@@ -2,33 +2,33 @@
 import { defineComponent } from 'vue';
 
 interface IconAndAction {
-  icon: string
   actionStr: string
+  icon: string
 }
 
 export default defineComponent({
   name: 'SudokuControls',
   props: {
-    inNotesMode: {
-      type: Boolean,
-      default: false,
-    },
     disableUndoButton: {
-      type: Boolean,
       default: false,
+      type: Boolean,
+    },
+    inNotesMode: {
+      default: false,
+      type: Boolean,
     },
   },
   setup(props, { emit }) {
     const numItems: IconAndAction[] = [
-      { icon: 'fas fa-1', actionStr: '1' },
-      { icon: 'fas fa-2', actionStr: '2' },
-      { icon: 'fas fa-3', actionStr: '3' },
-      { icon: 'fas fa-4', actionStr: '4' },
-      { icon: 'fas fa-5', actionStr: '5' },
-      { icon: 'fas fa-6', actionStr: '6' },
-      { icon: 'fas fa-7', actionStr: '7' },
-      { icon: 'fas fa-8', actionStr: '8' },
-      { icon: 'fas fa-9', actionStr: '9' },
+      { actionStr: '1', icon: 'fas fa-1' },
+      { actionStr: '2', icon: 'fas fa-2' },
+      { actionStr: '3', icon: 'fas fa-3' },
+      { actionStr: '4', icon: 'fas fa-4' },
+      { actionStr: '5', icon: 'fas fa-5' },
+      { actionStr: '6', icon: 'fas fa-6' },
+      { actionStr: '7', icon: 'fas fa-7' },
+      { actionStr: '8', icon: 'fas fa-8' },
+      { actionStr: '9', icon: 'fas fa-9' },
     ];
 
     const emitAction = (actionStr: string) => {
@@ -36,8 +36,8 @@ export default defineComponent({
     };
 
     return {
-      numItems,
       emitAction,
+      numItems,
     };
   },
 });

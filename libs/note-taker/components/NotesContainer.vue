@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Context, Page, SearchItem, Section, Todo } from '../data/NoteTaker.types';
 import _ from 'lodash';
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useRoute } from 'vue-router';
+
+import type { Context, Page, SearchItem, Section, Todo } from '../data/NoteTaker.types';
 
 import { NoteTaker } from '../data/NoteTaker';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
@@ -17,18 +18,18 @@ const storedJSON = localStorage.getItem('notes_json');
 const noteTaker = ref(NoteTaker.fromJSON(_.isString(jsonFromQueryParam) ? jsonFromQueryParam : storedJSON));
 
 const grid = computed(() => {
-  const { allSections, focusedItem, selectedSection, selectedPage, selectedContext } = noteTaker.value;
+  const { allSections, focusedItem, selectedContext, selectedPage, selectedSection } = noteTaker.value;
   return {
-    sections: allSections,
-    selectedSection,
+    contexts: selectedPage?.contexts || [],
+    focusedItem,
 
     pages: selectedSection?.pages || [],
+    sections: allSections,
+
+    selectedContext,
     selectedPage,
 
-    contexts: selectedPage?.contexts || [],
-    selectedContext,
-
-    focusedItem,
+    selectedSection,
   };
 });
 
@@ -37,31 +38,6 @@ const searchString = ref('');
 
 const getOrderedTodoItems = (items: Todo[]) => _.orderBy(items, 'done');
 
-function selectSection(section: Section) {
-  noteTaker.value.selectSection(section);
-}
-function selectPage(page: Page) {
-  noteTaker.value.selectPage(page);
-}
-function selectContext(context: Context) {
-  noteTaker.value.selectContext(context);
-}
-
-function editTitle(item: { title: string }) {
-  const newTitle = window.prompt('New title', item.title) || '';
-  if (newTitle)
-    item.title = newTitle;
-}
-function deleteSection(section: Section) {
-  if (!window.confirm(`Delete section ${section.title}?`))
-    return;
-  noteTaker.value.removeSection(section);
-}
-function deletePage(page: Page) {
-  if (!window.confirm(`Delete page ${page.title}?`))
-    return;
-  noteTaker.value.removePage(page);
-}
 function deleteContext(context: Context) {
   if (!window.confirm(`Delete context ${context.title}?`))
     return;
@@ -76,6 +52,31 @@ function deleteDoneContextItems(context: Context) {
   if (!window.confirm(`Delete done items in ${context.title}`))
     return;
   noteTaker.value.removeDoneFromContext(context);
+}
+
+function deletePage(page: Page) {
+  if (!window.confirm(`Delete page ${page.title}?`))
+    return;
+  noteTaker.value.removePage(page);
+}
+function deleteSection(section: Section) {
+  if (!window.confirm(`Delete section ${section.title}?`))
+    return;
+  noteTaker.value.removeSection(section);
+}
+function editTitle(item: { title: string }) {
+  const newTitle = window.prompt('New title', item.title) || '';
+  if (newTitle)
+    item.title = newTitle;
+}
+function selectContext(context: Context) {
+  noteTaker.value.selectContext(context);
+}
+function selectPage(page: Page) {
+  noteTaker.value.selectPage(page);
+}
+function selectSection(section: Section) {
+  noteTaker.value.selectSection(section);
 }
 
 watch(selectedItem, (v) => {

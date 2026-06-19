@@ -1,5 +1,7 @@
-import type { Section } from './NoteTaker.types';
 import { beforeEach, describe, it } from 'vitest';
+
+import type { Section } from './NoteTaker.types';
+
 import { getCommonSubjectTests } from '../../utils';
 import { createSection } from './commands';
 

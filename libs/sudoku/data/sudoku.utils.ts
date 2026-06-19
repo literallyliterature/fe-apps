@@ -1,8 +1,11 @@
 export { getSudoku as createGame } from 'sudoku-gen';
 
 export type CellRange = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-export type ValueRange = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-export type UserInputValueRange = ValueRange | ' ';
+export interface GameStatus {
+  complete?: boolean
+  duplicates?: SudokuCell[]
+  mistakes?: SudokuCell[]
+}
 export interface SudokuCell {
   column: CellRange
   correctValue: ValueRange
@@ -15,14 +18,15 @@ export interface SudokuCell {
   square: CellRange // starting with 0|1|2 in the top row
   userInput: UserInputValueRange
 }
-export interface GameStatus {
-  duplicates?: SudokuCell[]
-  mistakes?: SudokuCell[]
-  complete?: boolean
-}
+export type UserInputValueRange = ' ' | ValueRange;
+export type ValueRange = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 
 export function calculateColumnFromIndex(index: number): CellRange {
   return index % 9 as CellRange;
+}
+
+export function calculateIndexFromRowAndCol(row: number, col: number): number {
+  return 9 * row + col;
 }
 
 export function calculateRowFromIndex(index: number): CellRange {
@@ -36,10 +40,6 @@ export function calculateSquareFromIndex(index: number): CellRange {
   return ((3 * floor(row / 3)) + floor(column / 3)) as CellRange;
 }
 
-export function calculateIndexFromRowAndCol(row: number, col: number): number {
-  return 9 * row + col;
-}
-
 export function extractSudokuCells({
   gameString,
   originalsString,
@@ -49,6 +49,7 @@ export function extractSudokuCells({
 }): SudokuCell[] {
   return gameString.split('').map((correctValue, index) => ({
     column: calculateColumnFromIndex(index),
+    correctValue: correctValue as ValueRange,
     focused: false,
     index,
     notedNumbers: {},
@@ -56,7 +57,6 @@ export function extractSudokuCells({
     row: calculateRowFromIndex(index),
     showAsError: false,
     square: calculateSquareFromIndex(index),
-    correctValue: correctValue as ValueRange,
     userInput: originalsString[index] as UserInputValueRange,
   }));
 }

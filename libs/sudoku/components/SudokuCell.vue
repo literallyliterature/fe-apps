@@ -3,25 +3,25 @@ import { computed, defineComponent, useTemplateRef } from 'vue';
 
 export default defineComponent({
   name: 'SudokuCell',
+  emits: ['focused', 'keyPressed'],
   props: {
     cell: {
-      type: Object,
       required: true,
+      type: Object,
     },
     isFocused: {
-      type: Boolean,
       default: false,
+      type: Boolean,
     },
     isGameComplete: {
-      type: Boolean,
       default: false,
+      type: Boolean,
     },
     mistake: {
-      type: Boolean,
       default: false,
+      type: Boolean,
     },
   },
-  emits: ['focused', 'keyPressed'],
   setup(props, { emit }) {
     const cellDiv = useTemplateRef<HTMLDivElement>('cellDiv');
 
@@ -48,7 +48,7 @@ export default defineComponent({
     });
 
     const handleFocus = () => {
-      emit('focused', { row: props.cell.row, col: props.cell.column });
+      emit('focused', { col: props.cell.column, row: props.cell.row });
     };
 
     const handleKeydown = (event: KeyboardEvent) => {
@@ -56,13 +56,13 @@ export default defineComponent({
     };
 
     return {
-      cellDiv,
-      focus,
       backgroundColour,
+      cellDiv,
       displayedNotes,
-      readonly,
+      focus,
       handleFocus,
       handleKeydown,
+      readonly,
     };
   },
 });

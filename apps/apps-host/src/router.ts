@@ -2,13 +2,14 @@ import MinesweeperContainer from '@minesweeper/components/MinesweeperContainer.v
 import NotesContainer from '@note-taker/components/NotesContainer.vue';
 import SudokuContainer from '@sudoku/components/SudokuContainer.vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
+
 import HomePage from './components/HomePage.vue';
 
 const routes = [
-  { path: '/', component: HomePage },
-  { path: '/sudoku', component: SudokuContainer },
-  { path: '/minesweeper', component: MinesweeperContainer },
-  { path: '/notes', component: NotesContainer },
+  { component: HomePage, path: '/' },
+  { component: SudokuContainer, path: '/sudoku' },
+  { component: MinesweeperContainer, path: '/minesweeper' },
+  { component: NotesContainer, path: '/notes' },
 ];
 
 export const router = createRouter({
