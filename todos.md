@@ -1,8 +1,7 @@
 # TODOs
 
-- [ ] Fix behaviour of having things after code without space
+- [ ] Templates
 - [ ] Add edit commands
-- [ ] Add focus commands
 - [ ] Add left/right, etc. to move between contexts, pages and sections
 - [ ] Create tabbed UI
 - [ ] Add logic for up/down, alt up/down to move up and down focused items
