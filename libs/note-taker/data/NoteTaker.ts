@@ -32,7 +32,7 @@ export class NoteTaker {
   selectedPage?: Page;
   selectedSection?: Section;
 
-  constructor(allSections = []) {
+  constructor(allSections: Section[] = []) {
     this.allSections = allSections;
     if (allSections.length)
       this.selectSection(allSections[0]);
