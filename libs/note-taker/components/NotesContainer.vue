@@ -122,7 +122,10 @@ function doIfSearchEmpty(evt: Event, operation: () => void) {
 
 function toggleFocusedItem() {
   const { focusedItem } = grid.value;
-  if (focusedItem) focusedItem.done = !focusedItem.done;
+  if (focusedItem && 'done' in focusedItem) {
+    focusedItem.done = !focusedItem.done;
+    if (focusedItem.done) noteTaker.value.changeFocusedItem('down');
+  }
 }
 </script>
 
