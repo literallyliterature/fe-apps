@@ -49,11 +49,11 @@ type UserActionArrow = 'down' | 'left' | 'right' | 'up';
 type UserActionDiagonals = 'down-left' | 'down-right' | 'up-left' | 'up-right';
 
 export default defineComponent({
+  name: 'SudokuContainer',
   components: {
     SudokuCell,
     SudokuControls,
   },
-  name: 'SudokuContainer',
   setup() {
     const game = ref<null | SudokuGame>(null);
     const gameStatus = ref<'completed' | 'started' | 'uninitialised'>('uninitialised');
@@ -255,28 +255,22 @@ export default defineComponent({
       if (action === 'remove-focus') {
         game.value.focusedCol = undefined;
         game.value.focusedRow = undefined;
-      }
-      else if (action === 'left') {
+      } else if (action === 'left') {
         setFocusedRowAndCol({ col: Math.max((focusedCol - 1), 0) as CellRange } as InputRowAndCol);
-      }
-      else if (action === 'up') {
+      } else if (action === 'up') {
         setFocusedRowAndCol({ row: Math.max((focusedRow - 1), 0) as CellRange } as InputRowAndCol);
-      }
-      else if (action === 'right') {
+      } else if (action === 'right') {
         setFocusedRowAndCol({ col: Math.min((focusedCol + 1), 8) as CellRange } as InputRowAndCol);
-      }
-      else if (action === 'down') {
+      } else if (action === 'down') {
         setFocusedRowAndCol({ row: Math.min((focusedRow + 1), 8) as CellRange } as InputRowAndCol);
-      }
-      else if (action === 'del') {
+      } else if (action === 'del') {
         if (currentCell.userInput !== currentCell.original)
           saveUndoState();
         currentCell.notedNumbers = {};
         currentCell.userInput = currentCell.original;
         if (mistakesToShow.value.length)
           checkForMistakes();
-      }
-      else if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(action)) {
+      } else if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(action)) {
         const setNotes = inNotesMode.value ? !ctrlKey : !!ctrlKey;
 
         if (gameStatus.value !== 'completed' && currentCell.original === ' ') {
@@ -289,16 +283,14 @@ export default defineComponent({
                 checkForMistakes();
               removeAdjacentNotes(currentCell);
             }
-          }
-          else if (currentCell.userInput === ' ') {
+          } else if (currentCell.userInput === ' ') {
             currentCell.notedNumbers = {
               ...currentCell.notedNumbers,
               [action]: !currentCell.notedNumbers[action],
             };
           }
         }
-      }
-      else if (['down-left', 'down-right', 'up-left', 'up-right'].includes(action)) {
+      } else if (['down-left', 'down-right', 'up-left', 'up-right'].includes(action)) {
         const actions = action.split('-');
         actions.forEach(a => triggerUserAction(a as UserActionDiagonals, ctrlKey));
       }

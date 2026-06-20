@@ -7,6 +7,15 @@ function getRandomInt(max, min = 0) {
 }
 
 export default {
+  data: () => ({
+    blocks: [],
+    connHoverRow: -1,
+    connHoverCol: -1,
+    numberOfFlaggedCells: 0,
+    preventHoverEmit: false,
+    messedUp: false,
+    zeroClicks: true,
+  }),
 
   computed: {
     flattenedBlocks() {
@@ -29,15 +38,6 @@ export default {
     );
   },
 
-  data: () => ({
-    blocks: [],
-    connHoverRow: -1,
-    connHoverCol: -1,
-    numberOfFlaggedCells: 0,
-    preventHoverEmit: false,
-    messedUp: false,
-    zeroClicks: true,
-  }),
   methods: {
     getAdjacentCells(row, col) {
       const surroundingCells = [];
@@ -147,8 +147,7 @@ export default {
 
       if (cell.isMine) {
         this.messedUp = true;
-      }
-      else if (cell.surrounding === 0) {
+      } else if (cell.surrounding === 0) {
         const surroundingCells = this.getSurroundingCells(row, col);
         surroundingCells.forEach(([r, c]) => {
           const z = this.hasZeroSurrounding;
@@ -168,8 +167,7 @@ export default {
 
       if (this.blocks[randomRow][randomCol].isMine || this.blocks[randomRow][randomCol].preventMine) {
         this.markRandomBlockAsMine();
-      }
-      else {
+      } else {
         this.blocks[randomRow][randomCol].isMine = true;
       }
     },

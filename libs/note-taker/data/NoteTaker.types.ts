@@ -14,6 +14,14 @@ export interface ListItem {
   title: string
 }
 
+export interface NoteTakerExportable {
+  allSections: Section[]
+  focusedItemTitle: string | undefined
+  selectedContextTitle: string | undefined
+  selectedPageTitle: string | undefined
+  selectedSectionTitle: string | undefined
+}
+
 export interface Page {
   activeContextTitle?: string
   contexts: Context[]

@@ -9,6 +9,7 @@ export default antfu(
     rules: {
       'antfu/if-newline': ['off'],
       'no-alert': ['off'],
+      'style/brace-style': ['error', '1tbs'],
       'style/semi': ['error', 'always'],
     },
   },

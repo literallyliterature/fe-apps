@@ -73,13 +73,11 @@ export class NoteTaker {
           return nt;
         nt.selectContext(context);
         return nt;
-      }
-      catch (error) {
+      } catch (error) {
         console.error(error);
         return nt;
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
       return new NoteTaker();
     }
@@ -121,11 +119,9 @@ export class NoteTaker {
 
     if (code === 'export' && !additional) {
       return [{ cmd: 'clipboard.export', code: 'export', exactMatch: true, title: 'Export to clipboard' }];
-    }
-    else if (code === 'import' && !additional) {
+    } else if (code === 'import' && !additional) {
       return [{ cmd: 'clipboard.import', code: 'import', exactMatch: true, title: 'Import from clipboard' }];
-    }
-    else if (code === 'help' && !additional) {
+    } else if (code === 'help' && !additional) {
       return [{ cmd: 'help', code: 'help', exactMatch: true, title: codeDescriptions.help }];
     }
 
@@ -169,8 +165,7 @@ export class NoteTaker {
         this.selectPage(nt.selectedPage);
       if (nt.selectedContext)
         this.selectContext(nt.selectedContext);
-    }
-    catch {
+    } catch {
       window.alert('Invalid JSON');
     }
   }
@@ -230,8 +225,7 @@ export class NoteTaker {
 
     if (context.type !== 'todo' && !findMatchingItem()) {
       return context.items.push({ title });
-    }
-    else {
+    } else {
       const matchingItem = findMatchingItem() as null | Todo;
       if (matchingItem)
         matchingItem.done = false;
@@ -546,8 +540,7 @@ function getSearchResultsWithinContext(inputText: string, context: Context, some
     newItem.exactMatch = true;
     newItem.inputTitle = additional;
     return [newItem];
-  }
-  else if (code === 'sort') {
+  } else if (code === 'sort') {
     const searchItem: SearchItem = {
       cmd: 'context.sort',
       code: 'sort',
