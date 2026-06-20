@@ -1,4 +1,5 @@
-import { checkIfStringsMatch, normaliseStringForComparison } from 'utils';
+import _ from 'lodash';
+import { checkIfStringsMatch, moveItemDown, moveItemUp, normaliseStringForComparison } from 'utils';
 import { array, boolean, literal, object, string, union } from 'zod';
 
 import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
@@ -153,6 +154,26 @@ export function mergeStorableNotes(existingNotes: StorableNotes, importedNotesJs
   return generatedNoteTaker;
 }
 
+export function moveItemInContext(context: Context, itemTitle: string, upOrDown: 'down' | 'up'): void {
+  if (context.items.length <= 1) return;
+
+  const [doneItems, unfinishedItems] = _.partition(context.items, item => item.done);
+  const moveFn = upOrDown === 'up' ? moveItemUp : moveItemDown;
+
+  context.items = [
+    ...moveFn(unfinishedItems, unfinishedItems.findIndex(item => checkIfStringsMatch(item.title, itemTitle))),
+    ...moveFn(doneItems, doneItems.findIndex(item => checkIfStringsMatch(item.title, itemTitle))),
+  ];
+}
+
+export function removeDoneItemsFromContext(context: Context): void {
+  context.items = context.items.filter(item => !item.done);
+}
+
+export function removeDoneItemsFromPage(page: Page): void {
+  page.contexts.forEach(removeDoneItemsFromContext);
+}
+
 export function selectContextInPage(page: Page, contextTitle?: string): Context | undefined {
   const matchedContext = contextTitle
     ? page.contexts.find(c => checkIfStringsMatch(c.title, contextTitle))
@@ -178,4 +199,22 @@ export function selectSection(storableNotes: StorableNotes, sectionTitle?: strin
   const section = matchedSection ?? storableNotes.sections[0];
   storableNotes.selectedSectionTitle = section?.title;
   return section;
+}
+
+export function sortItemsInContextAlphabetically(context: Context): void {
+  context.items = _.sortBy(context.items, item => item.title);
+}
+
+export function sortItemsInContextByCompletion(context: Context): void {
+  context.items = _.sortBy(context.items, item => !!item.done);
+}
+
+export function toggleListItem(context: Context, itemTitle: string): ListItem | undefined {
+  const item = context.items.find(item => checkIfStringsMatch(item.title, itemTitle));
+  if (!item) return undefined;
+
+  item.done = !item.done;
+  sortItemsInContextByCompletion(context);
+
+  return item;
 }

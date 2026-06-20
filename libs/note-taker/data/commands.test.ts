@@ -15,9 +15,15 @@ import {
   mergePages,
   mergeSections,
   mergeStorableNotes,
+  moveItemInContext,
+  removeDoneItemsFromContext,
+  removeDoneItemsFromPage,
   selectContextInPage,
   selectPageInSection,
   selectSection,
+  sortItemsInContextAlphabetically,
+  sortItemsInContextByCompletion,
+  toggleListItem,
 } from './commands';
 
 function getExampleStorableNotes(): StorableNotes {
@@ -522,6 +528,184 @@ describe('mergeStorableNotess', () => {
   });
 });
 
+describe('moveItemInContext', () => {
+  const getExampleItems = (): ListItem[] => ([
+    { title: 'u1' },
+    { title: 'u2' },
+    { title: 'u3' },
+    { done: true, title: 'd1' },
+    { done: true, title: 'd2' },
+    { done: true, title: 'd3' },
+  ]);
+
+  let itemTitle: string;
+  beforeEach(() => itemTitle = '');
+
+  let upOrDown: 'down' | 'up';
+  beforeEach(() => upOrDown = 'up');
+
+  // returns sorted item titles
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => {
+    const context: Context = {
+      items: getExampleItems(),
+      title: 'example context',
+      type: 'todo',
+    };
+
+    moveItemInContext(context, itemTitle, upOrDown);
+
+    return context.items.map(item => item.title);
+  });
+
+  describe('up', () => {
+    beforeEach(() => upOrDown = 'up');
+
+    describe('when item title does not exist', () => {
+      beforeEach(() => itemTitle = 'non-existent');
+      it('does not modify sequence of items', () => {
+        expectSubjectToEqual(['u1', 'u2', 'u3', 'd1', 'd2', 'd3']);
+      });
+    });
+
+    describe('when item title is first unfinished item', () => {
+      beforeEach(() => itemTitle = 'u1');
+      it('moves that item to the last unfinished item', () => {
+        expectSubjectToEqual(['u2', 'u3', 'u1', 'd1', 'd2', 'd3']);
+      });
+    });
+
+    describe('when item title is other (not first) unfinished item', () => {
+      beforeEach(() => itemTitle = 'u2');
+      it('moves item up by 1', () => {
+        expectSubjectToEqual(['u2', 'u1', 'u3', 'd1', 'd2', 'd3']);
+      });
+    });
+
+    describe('when item title is first done item', () => {
+      beforeEach(() => itemTitle = 'd1');
+      it('moves item to the end of the list', () => {
+        expectSubjectToEqual(['u1', 'u2', 'u3', 'd2', 'd3', 'd1']);
+      });
+    });
+
+    describe('when item title is other (not first) done item', () => {
+      beforeEach(() => itemTitle = 'd3');
+      it('moves item up by 1', () => {
+        expectSubjectToEqual(['u1', 'u2', 'u3', 'd1', 'd3', 'd2']);
+      });
+    });
+  });
+
+  describe('down', () => {
+    beforeEach(() => upOrDown = 'down');
+
+    describe('when item title does not exist', () => {
+      beforeEach(() => itemTitle = 'non-existent');
+      it('does not modify sequence of items', () => {
+        expectSubjectToEqual(['u1', 'u2', 'u3', 'd1', 'd2', 'd3']);
+      });
+    });
+
+    describe('when item title is last unfinished item', () => {
+      beforeEach(() => itemTitle = 'u3');
+      it('moves it to the start of the list', () => {
+        expectSubjectToEqual(['u3', 'u1', 'u2', 'd1', 'd2', 'd3']);
+      });
+    });
+
+    describe('when item title is other (not last) unfinished item', () => {
+      beforeEach(() => itemTitle = 'u1');
+      it('moves it down by 1', () => {
+        expectSubjectToEqual(['u2', 'u1', 'u3', 'd1', 'd2', 'd3']);
+      });
+    });
+
+    describe('when item title is last done item', () => {
+      beforeEach(() => itemTitle = 'd3');
+      it('moves it to the start of the done items', () => {
+        expectSubjectToEqual(['u1', 'u2', 'u3', 'd3', 'd1', 'd2']);
+      });
+    });
+
+    describe('when item title is other (not last) done item', () => {
+      beforeEach(() => itemTitle = 'd2');
+      it('moves it down by 1', () => {
+        expectSubjectToEqual(['u1', 'u2', 'u3', 'd1', 'd3', 'd2']);
+      });
+    });
+  });
+});
+
+describe('removeDoneItemsFromContext', () => {
+  it('removes all done items from context in place', () => {
+    const context: Context = {
+      items: [
+        { done: false, title: 'first' },
+        { done: true, title: 'second' },
+        { title: 'third' },
+      ],
+      title: 'example context',
+      type: 'todo',
+    };
+
+    removeDoneItemsFromContext(context);
+
+    expect(context).toEqual(expect.objectContaining({
+      items: [
+        { done: false, title: 'first' },
+        { title: 'third' },
+      ],
+    }));
+  });
+});
+
+describe('removeDoneItemsFromPage', () => {
+  it('removes all done items from each context in the page, in place', () => {
+    const firstContext: Context = {
+      items: [
+        { done: false, title: '1.1' },
+        { done: true, title: '1.2' },
+        { title: '1.3' },
+      ],
+      title: 'first context',
+      type: 'todo',
+    };
+    const secondContext: Context = {
+      items: [
+        { done: false, title: '2.1' },
+        { done: true, title: '2.2' },
+        { title: '2.3' },
+      ],
+      title: 'second context',
+      type: 'todo',
+    };
+
+    const page: Page = {
+      contexts: [firstContext, secondContext],
+      title: 'example page',
+    };
+
+    removeDoneItemsFromPage(page);
+
+    expect(page).toEqual(expect.objectContaining({
+      contexts: [
+        expect.objectContaining({
+          items: [
+            { done: false, title: '1.1' },
+            { title: '1.3' },
+          ],
+        }),
+        expect.objectContaining({
+          items: [
+            { done: false, title: '2.1' },
+            { title: '2.3' },
+          ],
+        }),
+      ],
+    }));
+  });
+});
+
 describe('selectContextInPage', () => {
   let contextTitle: string | undefined;
   beforeEach(() => contextTitle = undefined);
@@ -666,5 +850,93 @@ describe('selectSection', () => {
         expect(storableNotes.selectedSectionTitle).toBe('second section');
       });
     });
+  });
+});
+
+describe('sortItemsInContextAlphabetically', () => {
+  it('alphabetically sorts items inside context', () => {
+    const context: Context = {
+      items: [
+        { title: 'one' },
+        { title: 'two' },
+        { done: true, title: 'three' },
+      ],
+      title: 'example context',
+      type: 'todo',
+    };
+
+    sortItemsInContextAlphabetically(context);
+
+    expect(context.items).toEqual([
+      { title: 'one' },
+      { done: true, title: 'three' },
+      { title: 'two' },
+    ]);
+  });
+});
+
+describe('sortItemsInContextByCompletion', () => {
+  it('sorts items inside context to put all unfinished items first', () => {
+    const context: Context = {
+      items: [
+        { done: false, title: 'one' },
+        { done: true, title: 'two' },
+        { title: 'three' },
+        { done: true, title: 'four' },
+      ],
+      title: 'example context',
+      type: 'todo',
+    };
+
+    sortItemsInContextByCompletion(context);
+
+    expect(context.items).toEqual([
+      { done: false, title: 'one' },
+      { title: 'three' },
+      { done: true, title: 'two' },
+      { done: true, title: 'four' },
+    ]);
+  });
+});
+
+describe('toggleListItem', () => {
+  let context: Context;
+  beforeEach(() => context = { items: [], title: 'example context', type: 'todo' });
+
+  let itemTitle: string;
+  beforeEach(() => itemTitle = '');
+
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => toggleListItem(context, itemTitle));
+
+  it('returns undefined if item is not found', () => {
+    itemTitle = 'asdf';
+    context.items = [{ title: 'first item' }];
+    expectSubjectToEqual(undefined);
+  });
+
+  it('returns the item with its state toggled if found, and updates it in place', () => {
+    context.items = [{ title: 'first item' }];
+    itemTitle = 'first item';
+
+    expectSubjectToEqual({ done: true, title: 'first item' });
+    expect(context.items[0].done).toBe(true);
+
+    expectSubjectToEqual({ done: false, title: 'first item' });
+    expect(context.items[0].done).toBe(false);
+  });
+
+  it('sorts items by completion after toggling list item', () => {
+    context.items = [
+      { title: 'first item' },
+      { title: 'second item' },
+    ];
+    itemTitle = 'first item';
+
+    expectSubjectToEqual({ done: true, title: 'first item' });
+
+    expect(context.items).toEqual([
+      { title: 'second item' },
+      { done: true, title: 'first item' },
+    ]);
   });
 });

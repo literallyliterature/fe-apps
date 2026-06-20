@@ -2,18 +2,7 @@
 
 ## Behaviour TODOs
 
-- [ ] Create all new commands
-    - [ ] createItemInContext
-    - [ ] createContextInPage
-    - [ ] createPageInSection
-    - [ ] focus
-    - [ ] markItemAsDoneInContext
-    - [ ] removeDoneFromContext
-    - [ ] removeDoneFromPage
-    - [ ] sortItemsInContext
 - [ ] Hook up to new commands (instead of methods inside NoteTaker)
-- [ ] Add edit commands
-- [ ] Add "move" commands
 - [ ] Add ability to move context to different page
 - [ ] Templates
 - [ ] Add search commands - search everything and select/focus on specific thing
