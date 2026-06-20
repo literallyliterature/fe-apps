@@ -19,11 +19,9 @@ export function focusItemInSelectedContext({ itemTitle, noteTaker }: {
   noteTaker: NoteTaker
 }): void {
   const context = noteTaker.selectedContext;
-  if (!context || context?.type !== 'todo') {
-    noteTaker.focusedItem = undefined;
-    return;
-  }
-  const item = getMatchingItemFromContext({ context, itemTitle });
+  const item = context
+    ? getMatchingItemFromContext({ context, itemTitle })
+    : undefined;
   noteTaker.focusedItem = item;
 }
 
@@ -63,11 +61,9 @@ export function selectContextInSelectedPage({ contextTitle, noteTaker }: {
   noteTaker: NoteTaker
 }): void {
   const page = noteTaker.selectedPage;
-  if (!page) {
-    noteTaker.selectedContext = undefined;
-    return;
-  }
-  const context = getMatchingContextFromPage({ contextTitle, page });
+  const context = page
+    ? (getMatchingContextFromPage({ contextTitle, page }) ?? page.contexts[0])
+    : undefined;
   noteTaker.selectedContext = context;
   focusItemInSelectedContext({ itemTitle: context?.focusedItemTitle, noteTaker });
 }
@@ -77,11 +73,9 @@ export function selectPageInSelectedSection({ noteTaker, pageTitle }: {
   pageTitle: string | undefined
 }): void {
   const section = noteTaker.selectedSection;
-  if (!section) {
-    noteTaker.selectedPage = undefined;
-    return;
-  }
-  const page = getMatchingPageFromSection({ pageTitle, section });
+  const page = section
+    ? (getMatchingPageFromSection({ pageTitle, section }) ?? section.pages[0])
+    : undefined;
   noteTaker.selectedPage = page;
   selectContextInSelectedPage({ contextTitle: page?.activeContextTitle, noteTaker });
 }
@@ -91,6 +85,6 @@ export function selectSection({ noteTaker, sectionTitle }: {
   sectionTitle: string
 }): void {
   const section = getMatchingSection({ existingSections: noteTaker.allSections, sectionTitle });
-  noteTaker.selectedSection = section;
+  noteTaker.selectedSection = section ?? noteTaker.allSections[0];
   selectPageInSelectedSection({ noteTaker, pageTitle: section?.activePageTitle });
 }

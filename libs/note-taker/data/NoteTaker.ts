@@ -1,7 +1,7 @@
 import fuzzy from 'fuzzy';
 import _ from 'lodash';
 
-import type { Context, Page, SearchItem, Section, Todo } from './NoteTaker.types';
+import type { Context, ListItem, Page, SearchItem, Section, Todo } from './NoteTaker.types';
 
 type code = SearchItem['code'];
 const codeDescriptions: { [K in code]: string } = {
@@ -27,7 +27,7 @@ const codes = Object.keys(codeDescriptions) as code[];
 
 export class NoteTaker {
   allSections: Section[];
-  focusedItem?: Todo;
+  focusedItem?: ListItem | Todo;
   selectedContext?: Context;
   selectedPage?: Page;
   selectedSection?: Section;
@@ -185,9 +185,7 @@ export class NoteTaker {
     if (!this.focusedItem) return;
     if (!this.selectedContext) return;
 
-    const { items, type } = this.selectedContext;
-
-    if (type !== 'todo') return;
+    const { items } = this.selectedContext;
 
     const indexOfFocusedItem = items.findIndex(item => item === this.focusedItem);
     let newIndex = indexOfFocusedItem
