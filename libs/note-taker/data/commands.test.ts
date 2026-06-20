@@ -3,8 +3,66 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { Context, Page, Section, Todo } from './NoteTaker.types';
 
 import { getCommonSubjectTests } from '../../utils';
-import { createSection, focusItemInSelectedContext, getMatchingContextFromPage, getMatchingItemFromContext, getMatchingPageFromSection, getMatchingSection, selectContextInSelectedPage, selectPageInSelectedSection, selectSection } from './commands';
+import { convertToExportable, convertToExportableJSON, createNoteTakerFromJSON, createSection, focusItemInSelectedContext, getMatchingContextFromPage, getMatchingItemFromContext, getMatchingPageFromSection, getMatchingSection, mergeContexts, mergeNoteTakers, mergePages, mergeSections, selectContextInSelectedPage, selectPageInSelectedSection, selectSection } from './commands';
 import { NoteTaker } from './NoteTaker';
+
+function getExampleNoteTaker(): NoteTaker {
+  const todoItems: Todo[] = [
+    { done: false, title: 'first item' },
+    { done: false, title: 'second item' },
+  ];
+  const contexts: Context[] = [
+    { items: todoItems, title: 'first context', type: 'todo' },
+    { focusedItemTitle: 'second item', items: todoItems, title: 'second context', type: 'todo' },
+  ];
+  const pages: Page[] = [
+    { contexts, title: 'first page' },
+    { activeContextTitle: 'second context', contexts, title: 'second page' },
+  ];
+  const sections: Section[] = [
+    { pages, title: 'first section' },
+    { activePageTitle: 'second page', pages, title: 'second section' },
+  ];
+
+  const noteTaker = new NoteTaker(sections);
+
+  selectSection({ noteTaker, sectionTitle: 'second section' });
+
+  return noteTaker;
+}
+
+describe('convertToExportable', () => {
+  it('returns exportable object representation of given noteTaker', () => {
+    expect(convertToExportable(getExampleNoteTaker())).toEqual(expect.any(Object));
+  });
+});
+
+describe('convertToExportableJSON', () => {
+  it('returns string representation of given noteTaker', () => {
+    expect(convertToExportableJSON(getExampleNoteTaker())).toEqual(expect.any(String));
+  });
+});
+
+describe('createNoteTakerFromJSON', () => {
+  const exampleNoteTaker = getExampleNoteTaker();
+
+  it('converts json reprentation of a note taker into an identical note taker', () => {
+    const jsonNoteTaker = convertToExportableJSON(exampleNoteTaker);
+    const fromJson = createNoteTakerFromJSON(jsonNoteTaker);
+
+    expect(fromJson).toStrictEqual(exampleNoteTaker);
+
+    expect(fromJson.focusedItem).toEqual(expect.objectContaining({ title: 'second item' }));
+  });
+
+  it('returns empty note taker if input is invalid json', () => {
+    expect(createNoteTakerFromJSON('asdf-zxcv')).toEqual(new NoteTaker());
+  });
+
+  it('returns empty note taker if input is valid JSON, but not of an exportable note taker', () => {
+    expect(createNoteTakerFromJSON('{}')).toEqual(new NoteTaker());
+  });
+});
 
 describe('createSection', () => {
   let existingSections: Section[];
@@ -288,6 +346,259 @@ describe('getMatchingSection', () => {
     it('returns undefined', () => {
       expectSubjectToEqual(undefined);
     });
+  });
+});
+
+describe('mergeContexts', () => {
+  let firstContext: Context;
+  beforeEach(() => firstContext = {
+    items: [],
+    title: 'First context',
+    type: 'todo',
+  });
+
+  let secondContext: Context;
+  beforeEach(() => secondContext = {
+    items: [],
+    title: 'Second context',
+    type: 'todo',
+  });
+
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => mergeContexts(firstContext, secondContext));
+
+  describe('if the types do not match', () => {
+    it('returns second context', () => {
+      secondContext = {
+        items: [{ title: 'Item one' }],
+        title: 'Second context',
+        type: 'ordered-list',
+      };
+
+      expectSubjectToEqual(secondContext);
+    });
+  });
+
+  describe('if the types match', () => {
+    it('returns the title and focusedItemTitle from the second context', () => {
+      secondContext.focusedItemTitle = 'Item one';
+
+      expectSubjectToEqual({
+        focusedItemTitle: 'Item one',
+        items: [],
+        title: 'Second context',
+        type: 'todo',
+      });
+    });
+
+    describe('if the first and second context only have items with unique titles', () => {
+      it('returns context with all items from first, then all items from second', () => {
+        firstContext.items = [{ done: false, title: '1.1' }, { done: false, title: '1.2' }];
+        secondContext.items = [{ done: false, title: '2.1' }, { done: false, title: '2.2' }];
+
+        expectSubjectToEqual(expect.objectContaining({
+          items: [
+            { done: false, title: '1.1' },
+            { done: false, title: '1.2' },
+            { done: false, title: '2.1' },
+            { done: false, title: '2.2' },
+          ],
+        }));
+      });
+
+      it('if item titles match (after normalisation), filters out the matching item from the first context', () => {
+        firstContext.items = [{ done: false, title: '    item 1' }, { done: false, title: '1.2' }];
+        secondContext.items = [{ done: true, title: 'item 1' }, { done: false, title: '2.2' }];
+
+        expectSubjectToEqual(expect.objectContaining({
+          items: [
+            { done: true, title: 'item 1' },
+            { done: false, title: '1.2' },
+            { done: false, title: '2.2' },
+          ],
+        }));
+      });
+    });
+  });
+});
+
+describe('mergeNoteTakers', () => {
+  let existingNoteTaker: NoteTaker;
+  beforeEach(() => existingNoteTaker = new NoteTaker());
+
+  let noteTakerToImport: NoteTaker;
+  beforeEach(() => noteTakerToImport = new NoteTaker());
+
+  const { expectSubjectToEqual, getSubject } = getCommonSubjectTests(() => mergeNoteTakers(
+    existingNoteTaker,
+    convertToExportableJSON(noteTakerToImport),
+  ));
+
+  it('returns a new NoteTaker containing all sections from both existing and the imported note taker', () => {
+    existingNoteTaker = getExampleNoteTaker();
+    noteTakerToImport = new NoteTaker([{
+      pages: [],
+      title: 'imported section',
+    }]);
+
+    const result = getSubject();
+    expect(result).toEqual(expect.any(NoteTaker));
+    expect(result.allSections).toContainEqual(expect.objectContaining({ title: 'first section' }));
+    expect(result.allSections).toContainEqual(expect.objectContaining({ title: 'imported section' }));
+  });
+
+  it('uses selected and focused titles from the imported note taker', () => {
+    existingNoteTaker = getExampleNoteTaker();
+    noteTakerToImport = new NoteTaker([{
+      pages: [],
+      title: 'imported section',
+    }]);
+
+    expectSubjectToEqual(expect.objectContaining({
+      selectedSection: expect.objectContaining({ title: 'imported section' }),
+    }));
+  });
+
+  it('matches existingNoteTaker if existingNoteTaker and the imported note taker are identical', () => {
+    existingNoteTaker = getExampleNoteTaker();
+    noteTakerToImport = getExampleNoteTaker();
+
+    expectSubjectToEqual(getExampleNoteTaker());
+  });
+
+  it('preserves all existing sections, pages, contexts and items in the existing note taker, appending any entities from the imported note taker at the end', () => {
+    existingNoteTaker = getExampleNoteTaker();
+    noteTakerToImport = new NoteTaker([{
+      pages: [],
+      title: 'imported section',
+    }]);
+
+    expectSubjectToEqual(expect.objectContaining({
+      allSections: [
+        expect.objectContaining({ title: 'first section' }),
+        expect.objectContaining({ title: 'second section' }),
+        expect.objectContaining({ title: 'imported section' }),
+      ],
+    }));
+  });
+});
+
+describe('mergePages', () => {
+  it('returns combined page with attributes (except contexts) from second', () => {
+    const first: Page = { activeContextTitle: 'first item', contexts: [], title: 'first page' };
+    const second: Page = { activeContextTitle: 'second item', contexts: [], title: 'second page' };
+
+    expect(mergePages(first, second)).toEqual(second);
+  });
+
+  it('returns contexts from first, then second, if no titles match', () => {
+    const first: Page = { contexts: [
+      { items: [], title: 'c1.1', type: 'todo' },
+      { items: [], title: 'c1.2', type: 'todo' },
+    ], title: 'first page' };
+    const second: Page = { contexts: [
+      { items: [], title: 'c2.1', type: 'todo' },
+      { items: [], title: 'c2.2', type: 'todo' },
+    ], title: 'second page' };
+
+    expect(mergePages(first, second)).toEqual(expect.objectContaining({
+      contexts: [
+        { items: [], title: 'c1.1', type: 'todo' },
+        { items: [], title: 'c1.2', type: 'todo' },
+        { items: [], title: 'c2.1', type: 'todo' },
+        { items: [], title: 'c2.2', type: 'todo' },
+      ],
+    }));
+  });
+
+  it('merges contexts with common name, and does not repeat them', () => {
+    const first: Page = {
+      contexts: [
+        { items: [{ done: false, title: 'i1.1' }], title: 'common', type: 'todo' },
+        { items: [], title: 'c1.2', type: 'todo' },
+      ],
+      title: 'first page',
+    };
+    const second: Page = {
+      contexts: [
+        { items: [{ done: false, title: 'i2.1' }], title: 'common', type: 'todo' },
+        { items: [], title: 'c2.2', type: 'todo' },
+      ],
+      title: 'second page',
+    };
+
+    expect(mergePages(first, second)).toEqual(expect.objectContaining({
+      contexts: [
+        { items: [{ done: false, title: 'i1.1' }, { done: false, title: 'i2.1' }], title: 'common', type: 'todo' },
+        { items: [], title: 'c1.2', type: 'todo' },
+        { items: [], title: 'c2.2', type: 'todo' },
+      ],
+    }));
+  });
+});
+
+describe('mergeSections', () => {
+  it('returns combined page with attributes (except pages) from second', () => {
+    const first: Section = { activePageTitle: 'first page', pages: [], title: 'first section' };
+    const second: Section = { activePageTitle: 'second page', pages: [], title: 'second section' };
+
+    expect(mergeSections(first, second)).toEqual(second);
+  });
+
+  it('returns pages from first, then second, if no titles match', () => {
+    const first: Section = {
+      pages: [
+        { contexts: [], title: 'p1.1' },
+        { contexts: [], title: 'p1.2' },
+      ],
+      title: 'first section',
+    };
+    const second: Section = {
+      pages: [
+        { contexts: [], title: 'p2.1' },
+        { contexts: [], title: 'p2.2' },
+      ],
+      title: 'second section',
+    };
+
+    expect(mergeSections(first, second)).toEqual(expect.objectContaining({
+      pages: [
+        { contexts: [], title: 'p1.1' },
+        { contexts: [], title: 'p1.2' },
+        { contexts: [], title: 'p2.1' },
+        { contexts: [], title: 'p2.2' },
+      ],
+    }));
+  });
+
+  it('merges pages with common name, and does not repeat them', () => {
+    const first: Section = {
+      pages: [
+        { contexts: [{ items: [], title: 'c1', type: 'todo' }], title: 'common' },
+        { contexts: [], title: 'p1.2' },
+      ],
+      title: 'first section',
+    };
+    const second: Section = {
+      pages: [
+        { contexts: [{ items: [], title: 'c2', type: 'ordered-list' }], title: 'common' },
+        { contexts: [], title: 'p2.2' },
+      ],
+      title: 'second section',
+    };
+
+    expect(mergeSections(first, second)).toEqual(expect.objectContaining({
+      pages: [
+        {
+          contexts: [
+            { items: [], title: 'c1', type: 'todo' },
+            { items: [], title: 'c2', type: 'ordered-list' },
+          ],
+          title: 'common',
+        },
+        { contexts: [], title: 'p1.2' },
+        { contexts: [], title: 'p2.2' },
+      ],
+    }));
   });
 });
 
