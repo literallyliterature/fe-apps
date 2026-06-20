@@ -1,6 +1,32 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 
-import { checkIfStringsMatch, normaliseStringForComparison } from './utils';
+import { assertNotNil, checkIfStringsMatch, normaliseStringForComparison } from './utils';
+
+describe('assertNotNil', () => {
+  it('throws an error if value is undefined or null', () => {
+    expect(() => assertNotNil(undefined)).toThrow();
+    expect(() => assertNotNil(null)).toThrow();
+  });
+
+  it('does not throw error for non-nullish values', () => {
+    [
+      0,
+      false,
+      true,
+      {},
+      [],
+    ].forEach(v => expect(() => assertNotNil(v)).not.toThrow());
+  });
+
+  it('enforces that the type of something no longer includes undefined | null', () => {
+    let v: null | string | undefined = 'asdf';
+    v = undefined;
+    v = 'asdf';
+
+    assertNotNil(v);
+    expectTypeOf(v).toEqualTypeOf<string>();
+  });
+});
 
 describe('checkIfStringsMatch', () => {
   it('returns true if strings match', () => {
