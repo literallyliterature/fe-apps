@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { checkIfStringsMatch } from './utils';
+import { checkIfStringsMatch, normaliseStringForComparison } from './utils';
 
 describe('checkIfStringsMatch', () => {
   it('returns true if strings match', () => {
@@ -15,5 +15,11 @@ describe('checkIfStringsMatch', () => {
   it('trims strings before checking', () => {
     expect(checkIfStringsMatch('   one', ' one    ')).toBe(true);
     expect(checkIfStringsMatch('one', 'o ne')).toBe(false);
+  });
+});
+
+describe('normaliseStringForComparison', () => {
+  it('trims and lowercases input string', () => {
+    expect(normaliseStringForComparison('    AsdF ')).toEqual('asdf');
   });
 });

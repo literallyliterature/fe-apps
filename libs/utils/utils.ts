@@ -1,7 +1,7 @@
 export function checkIfStringsMatch(first: string, second: string) {
-  return normalise(first) === normalise(second);
+  return normaliseStringForComparison(first) === normaliseStringForComparison(second);
 }
 
-function normalise(s: string) {
+export function normaliseStringForComparison(s: string) {
   return s.toLowerCase().trim();
 }
