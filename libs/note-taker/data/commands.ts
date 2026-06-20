@@ -1,103 +1,97 @@
 import { checkIfStringsMatch, normaliseStringForComparison } from 'utils';
+import { array, boolean, literal, object, string, union } from 'zod';
 
-import type { Context, NoteTakerExportable, Page, Section } from './NoteTaker.types';
+import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 
-import { NoteTaker } from './NoteTaker';
+const noteTakerZodSchema = object({
+  sections: array(object({
+    activePageTitle: string().optional(),
+    pages: array(object({
+      activeContextTitle: string().optional(),
+      contexts: array(object({
+        focusedItemTitle: string().optional(),
+        items: array(object({
+          done: boolean().optional(),
+          title: string(),
+        })),
+        title: string(),
+        type: union([literal('todo'), literal('ordered-list'), literal('unordered-list')]),
+      })),
+      title: string(),
+    })),
+    title: string(),
+  })),
+  selectedSectionTitle: string().optional(),
+});
 
-export function convertToExportable(noteTaker: NoteTaker): NoteTakerExportable {
-  return {
-    allSections: noteTaker.allSections,
-    focusedItemTitle: noteTaker.focusedItem?.title,
-    selectedContextTitle: noteTaker.selectedContext?.title,
-    selectedPageTitle: noteTaker.selectedPage?.title,
-    selectedSectionTitle: noteTaker.selectedSection?.title,
-  };
+export function convertToExportableJSON(noteTaker: StorableNotes): string {
+  return JSON.stringify(noteTaker);
 }
 
-export function convertToExportableJSON(noteTaker: NoteTaker): string {
-  return JSON.stringify(convertToExportable(noteTaker));
-}
+export function createStorableNotesFromJson(noteTakerJson: string): StorableNotes {
+  let storableNotes: StorableNotes;
 
-export function createNoteTakerFromJSON(noteTakerJson: string): NoteTaker {
-  let parsed: NoteTakerExportable;
   try {
-    parsed = JSON.parse(noteTakerJson) as NoteTakerExportable;
+    storableNotes = noteTakerZodSchema.parse(JSON.parse(noteTakerJson));
   } catch {
-    parsed = {
-      allSections: [],
-      focusedItemTitle: undefined,
-      selectedContextTitle: undefined,
-      selectedPageTitle: undefined,
-      selectedSectionTitle: undefined,
+    storableNotes = {
+      sections: [],
     };
   }
 
-  const noteTaker = new NoteTaker(parsed.allSections);
-  selectSection({ noteTaker, sectionTitle: parsed.selectedSectionTitle });
-  selectPageInSelectedSection({ noteTaker, pageTitle: parsed.selectedPageTitle });
-  selectContextInSelectedPage({ contextTitle: parsed.selectedContextTitle, noteTaker });
-  focusItemInSelectedContext({ itemTitle: parsed.focusedItemTitle, noteTaker });
-
-  return noteTaker;
+  return storableNotes;
 }
 
-export function createSection({ existingSections, sectionTitle }: {
-  existingSections: Section[]
-  sectionTitle: string
-}): Section {
-  const existingMatch = getMatchingSection({ existingSections, sectionTitle });
-  return existingMatch ?? {
+export function findContextInPage(contextTitle: string, page: Page): Context | undefined {
+  return page.contexts.find(c => checkIfStringsMatch(c.title, contextTitle));
+}
+
+export function findOrCreateItemInContext(itemTitle: string, context: Context): ListItem {
+  const existingItem = context.items.find(item => checkIfStringsMatch(item.title, itemTitle));
+  if (existingItem) return existingItem;
+
+  const newItem: ListItem = { title: itemTitle };
+  context.items.push(newItem);
+  return newItem;
+}
+
+export function findOrCreatePageInSection(pageTitle: string, section: Section): Page {
+  const existingMatch = section.pages.find(p => checkIfStringsMatch(p.title, pageTitle));
+  if (existingMatch) return existingMatch;
+
+  const newPage: Page = {
+    contexts: [],
+    title: pageTitle,
+  };
+  section.pages.push(newPage);
+  return newPage;
+}
+
+export function findOrCreateSection(sectionTitle: string, sections: Section[]): Section {
+  const existingMatch = sections.find(s => checkIfStringsMatch(s.title, sectionTitle));
+  if (existingMatch) return existingMatch;
+
+  const newSection = {
     pages: [],
     title: sectionTitle,
   };
+  sections.push(newSection);
+  return newSection;
 }
 
-export function focusItemInSelectedContext({ itemTitle, noteTaker }: {
-  itemTitle: string | undefined
-  noteTaker: NoteTaker
-}): void {
-  const context = noteTaker.selectedContext;
-  const item = context
-    ? getMatchingItemFromContext({ context, itemTitle })
+export function focusItemInContext(context: Context, itemTitle?: string): ListItem | undefined {
+  const matchedItem = itemTitle
+    ? context.items.find(item => checkIfStringsMatch(item.title, itemTitle))
     : undefined;
-  noteTaker.focusedItem = item;
+  const item = matchedItem ?? context.items[0];
+  context.focusedItemTitle = item?.title;
+  return item;
 }
 
-export function getMatchingContextFromPage({ contextTitle, page }: {
-  contextTitle: string | undefined
-  page: Page
-}): Context | undefined {
-  if (!contextTitle) return page.contexts[0];
-  return page.contexts.find(p => checkIfStringsMatch(p.title, contextTitle));
-}
-
-export function getMatchingItemFromContext<C extends Context>({ context, itemTitle }: {
-  context: C
-  itemTitle: string | undefined
-}): C['items'][number] | undefined {
-  if (!itemTitle) return context.items[0];
-  return context.items.find(i => checkIfStringsMatch(i.title, itemTitle));
-}
-
-export function getMatchingPageFromSection({ pageTitle, section }: {
-  pageTitle: string | undefined
-  section: Section
-}): Page | undefined {
-  if (!pageTitle) return section.pages[0];
-  return section.pages.find(p => checkIfStringsMatch(p.title, pageTitle));
-}
-
-export function getMatchingSection({ existingSections, sectionTitle }: {
-  existingSections: Section[]
-  sectionTitle: string
-}): Section | undefined {
-  return existingSections.find(s => checkIfStringsMatch(s.title, sectionTitle));
-}
-
-export function mergeContexts<T extends Context>(first: Context, second: T): T {
+export function mergeContexts<C extends Context>(first: Context, second: C): C {
   if (first.type !== second.type) return second;
 
-  const uniqueKeyToItem: Record<string, T['items'][number]> = {};
+  const uniqueKeyToItem: Record<string, ListItem> = {};
 
   [...first.items, ...second.items].forEach((item) => {
     uniqueKeyToItem[normaliseStringForComparison(item.title)] = item;
@@ -107,24 +101,6 @@ export function mergeContexts<T extends Context>(first: Context, second: T): T {
     ...second,
     items: Object.values(uniqueKeyToItem),
   };
-}
-
-export function mergeNoteTakers(existingNoteTaker: NoteTaker, importedNoteTakerJson: string): NoteTaker {
-  const generatedNoteTaker = createNoteTakerFromJSON(importedNoteTakerJson);
-
-  const uniqueKeyToSection: Record<string, Section> = {};
-
-  existingNoteTaker.allSections.forEach(s => uniqueKeyToSection[normaliseStringForComparison(s.title)] = s);
-
-  generatedNoteTaker.allSections.forEach((s) => {
-    const key = normaliseStringForComparison(s.title);
-    const sectionFromExisting = uniqueKeyToSection[key];
-    uniqueKeyToSection[key] = sectionFromExisting ? mergeSections(sectionFromExisting, s) : s;
-  });
-
-  generatedNoteTaker.allSections = Object.values(uniqueKeyToSection);
-
-  return generatedNoteTaker;
 }
 
 export function mergePages(first: Page, second: Page): Page {
@@ -159,37 +135,47 @@ export function mergeSections(first: Section, second: Section): Section {
   };
 }
 
-export function selectContextInSelectedPage({ contextTitle, noteTaker }: {
-  contextTitle: string | undefined
-  noteTaker: NoteTaker
-}): void {
-  const page = noteTaker.selectedPage;
-  const context = page
-    ? (getMatchingContextFromPage({ contextTitle, page }) ?? page.contexts[0])
-    : undefined;
-  noteTaker.selectedContext = context;
-  focusItemInSelectedContext({ itemTitle: context?.focusedItemTitle, noteTaker });
+export function mergeStorableNotes(existingNotes: StorableNotes, importedNotesJson: string): StorableNotes {
+  const generatedNoteTaker = createStorableNotesFromJson(importedNotesJson);
+
+  const uniqueKeyToSection: Record<string, Section> = {};
+
+  existingNotes.sections.forEach(s => uniqueKeyToSection[normaliseStringForComparison(s.title)] = s);
+
+  generatedNoteTaker.sections.forEach((s) => {
+    const key = normaliseStringForComparison(s.title);
+    const sectionFromExisting = uniqueKeyToSection[key];
+    uniqueKeyToSection[key] = sectionFromExisting ? mergeSections(sectionFromExisting, s) : s;
+  });
+
+  generatedNoteTaker.sections = Object.values(uniqueKeyToSection);
+
+  return generatedNoteTaker;
 }
 
-export function selectPageInSelectedSection({ noteTaker, pageTitle }: {
-  noteTaker: NoteTaker
-  pageTitle: string | undefined
-}): void {
-  const section = noteTaker.selectedSection;
-  const page = section
-    ? (getMatchingPageFromSection({ pageTitle, section }) ?? section.pages[0])
+export function selectContextInPage(page: Page, contextTitle?: string): Context | undefined {
+  const matchedContext = contextTitle
+    ? page.contexts.find(c => checkIfStringsMatch(c.title, contextTitle))
     : undefined;
-  noteTaker.selectedPage = page;
-  selectContextInSelectedPage({ contextTitle: page?.activeContextTitle, noteTaker });
+  const context = matchedContext ?? page.contexts[0];
+  page.activeContextTitle = context?.title;
+  return context;
 }
 
-export function selectSection({ noteTaker, sectionTitle }: {
-  noteTaker: NoteTaker
-  sectionTitle: string | undefined
-}): void {
-  const section = sectionTitle
-    ? getMatchingSection({ existingSections: noteTaker.allSections, sectionTitle })
+export function selectPageInSection(section: Section, pageTitle?: string): Page | undefined {
+  const matchedPage = pageTitle
+    ? section.pages.find(p => checkIfStringsMatch(p.title, pageTitle))
     : undefined;
-  noteTaker.selectedSection = section ?? noteTaker.allSections[0];
-  selectPageInSelectedSection({ noteTaker, pageTitle: section?.activePageTitle });
+  const page = matchedPage ?? section.pages[0];
+  section.activePageTitle = page?.title;
+  return page;
+}
+
+export function selectSection(storableNotes: StorableNotes, sectionTitle?: string): Section | undefined {
+  const matchedSection = sectionTitle
+    ? storableNotes.sections.find(s => checkIfStringsMatch(s.title, sectionTitle))
+    : undefined;
+  const section = matchedSection ?? storableNotes.sections[0];
+  storableNotes.selectedSectionTitle = section?.title;
+  return section;
 }

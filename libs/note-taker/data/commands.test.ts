@@ -1,19 +1,33 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import type { Context, Page, Section, Todo } from './NoteTaker.types';
+import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 
 import { getCommonSubjectTests } from '../../utils';
-import { convertToExportable, convertToExportableJSON, createNoteTakerFromJSON, createSection, focusItemInSelectedContext, getMatchingContextFromPage, getMatchingItemFromContext, getMatchingPageFromSection, getMatchingSection, mergeContexts, mergeNoteTakers, mergePages, mergeSections, selectContextInSelectedPage, selectPageInSelectedSection, selectSection } from './commands';
-import { NoteTaker } from './NoteTaker';
+import {
+  convertToExportableJSON,
+  createStorableNotesFromJson,
+  findContextInPage,
+  findOrCreateItemInContext,
+  findOrCreatePageInSection,
+  findOrCreateSection,
+  focusItemInContext,
+  mergeContexts,
+  mergePages,
+  mergeSections,
+  mergeStorableNotes,
+  selectContextInPage,
+  selectPageInSection,
+  selectSection,
+} from './commands';
 
-function getExampleNoteTaker(): NoteTaker {
-  const todoItems: Todo[] = [
-    { done: false, title: 'first item' },
-    { done: false, title: 'second item' },
+function getExampleStorableNotes(): StorableNotes {
+  const listItems: ListItem[] = [
+    { title: 'first item' },
+    { title: 'second item' },
   ];
   const contexts: Context[] = [
-    { items: todoItems, title: 'first context', type: 'todo' },
-    { focusedItemTitle: 'second item', items: todoItems, title: 'second context', type: 'todo' },
+    { items: listItems, title: 'first context', type: 'todo' },
+    { focusedItemTitle: 'second item', items: listItems, title: 'second context', type: 'todo' },
   ];
   const pages: Page[] = [
     { contexts, title: 'first page' },
@@ -24,138 +38,39 @@ function getExampleNoteTaker(): NoteTaker {
     { activePageTitle: 'second page', pages, title: 'second section' },
   ];
 
-  const noteTaker = new NoteTaker(sections);
+  const storableNotes: StorableNotes = { sections, selectedSectionTitle: 'second section' };
 
-  selectSection({ noteTaker, sectionTitle: 'second section' });
-
-  return noteTaker;
+  return storableNotes;
 }
 
-describe('convertToExportable', () => {
-  it('returns exportable object representation of given noteTaker', () => {
-    expect(convertToExportable(getExampleNoteTaker())).toEqual(expect.any(Object));
-  });
-});
-
 describe('convertToExportableJSON', () => {
-  it('returns string representation of given noteTaker', () => {
-    expect(convertToExportableJSON(getExampleNoteTaker())).toEqual(expect.any(String));
+  it('returns string representation of given storableNotes', () => {
+    expect(convertToExportableJSON(getExampleStorableNotes())).toEqual(expect.any(String));
   });
 });
 
-describe('createNoteTakerFromJSON', () => {
-  const exampleNoteTaker = getExampleNoteTaker();
+describe('createStorableNotesFromJson', () => {
+  const exampleStorableNotes = getExampleStorableNotes();
 
   it('converts json reprentation of a note taker into an identical note taker', () => {
-    const jsonNoteTaker = convertToExportableJSON(exampleNoteTaker);
-    const fromJson = createNoteTakerFromJSON(jsonNoteTaker);
+    const jsonStorableNotes = convertToExportableJSON(exampleStorableNotes);
+    const fromJson = createStorableNotesFromJson(jsonStorableNotes);
 
-    expect(fromJson).toStrictEqual(exampleNoteTaker);
-
-    expect(fromJson.focusedItem).toEqual(expect.objectContaining({ title: 'second item' }));
+    expect(fromJson).toStrictEqual(exampleStorableNotes);
   });
 
   it('returns empty note taker if input is invalid json', () => {
-    expect(createNoteTakerFromJSON('asdf-zxcv')).toEqual(new NoteTaker());
+    expect(createStorableNotesFromJson('asdf-zxcv')).toEqual({ sections: [] });
   });
 
   it('returns empty note taker if input is valid JSON, but not of an exportable note taker', () => {
-    expect(createNoteTakerFromJSON('{}')).toEqual(new NoteTaker());
+    expect(createStorableNotesFromJson('{}')).toEqual({ sections: [] });
   });
 });
 
-describe('createSection', () => {
-  let existingSections: Section[];
-  beforeEach(() => existingSections = []);
-
-  let sectionTitle: string;
-  beforeEach(() => sectionTitle = '');
-
-  const { expectSubjectToEqual } = getCommonSubjectTests(() => createSection({
-    existingSections,
-    sectionTitle,
-  }));
-
-  it('returns a section object with empty pages', () => {
-    sectionTitle = 'asdf';
-    expectSubjectToEqual({ pages: [], title: 'asdf' });
-  });
-
-  it('returns existing section object if one is found with a matching title (case insensitive)', () => {
-    existingSections = [{ pages: [], title: 'existing' }];
-    sectionTitle = 'EXISTING';
-
-    expectSubjectToEqual({ pages: [], title: 'existing' });
-  });
-});
-
-describe('focusItemInSelectedContext', () => {
-  let itemTitle: string | undefined;
-  beforeEach(() => itemTitle = 'item to select');
-
-  let noteTaker: NoteTaker;
-  beforeEach(() => noteTaker = new NoteTaker([]));
-
-  const { getSubject } = getCommonSubjectTests(() => focusItemInSelectedContext({
-    itemTitle,
-    noteTaker,
-  }));
-
-  it('sets focusedItem in noteTaker, if itemTitle matches an item in selectedContext', () => {
-    noteTaker.selectedContext = {
-      items: [
-        { done: false, title: 'item to select' },
-        { done: false, title: 'other item' },
-      ],
-      title: 'selected context',
-      type: 'todo',
-    };
-    expect(noteTaker.focusedItem).toBeUndefined();
-    getSubject();
-    expect(noteTaker.focusedItem).toEqual({ done: false, title: 'item to select' });
-  });
-
-  describe('when a focused item already exists', () => {
-    beforeEach(() => {
-      noteTaker.selectedContext = {
-        items: [
-          { done: false, title: 'item to select' },
-          { done: false, title: 'other item' },
-        ],
-        title: 'selected context',
-        type: 'todo',
-      };
-      expect(noteTaker.focusedItem).toBeUndefined();
-      getSubject();
-      expect(noteTaker.focusedItem).toEqual({ done: false, title: 'item to select' });
-    });
-
-    it('sets focusedItem to undefined if a selectedContext does not exist', () => {
-      expect(noteTaker.focusedItem).not.toBeUndefined();
-      noteTaker.selectedContext = undefined;
-      getSubject();
-      expect(noteTaker.focusedItem).toBeUndefined();
-    });
-
-    it('sets focusedItem to undefined if itemTitle does not exist in any item in context', () => {
-      expect(noteTaker.focusedItem).not.toBeUndefined();
-      itemTitle = 'non-existent';
-      getSubject();
-      expect(noteTaker.focusedItem).toBeUndefined();
-    });
-
-    it('does nothing if selectedContext is not of type todo', () => {
-      expect(noteTaker.focusedItem).not.toBeUndefined();
-      itemTitle = 'non-existent';
-      getSubject();
-      expect(noteTaker.focusedItem).toBeUndefined();
-    });
-  });
-});
-
-describe('getMatchingContextFromPage', () => {
-  let contextTitle: string | undefined;
-  beforeEach(() => contextTitle = undefined);
+describe('findContextInPage', () => {
+  let contextTitle: string;
+  beforeEach(() => contextTitle = '');
 
   let contextTitlesInPage: string[];
   beforeEach(() => contextTitlesInPage = []);
@@ -165,7 +80,7 @@ describe('getMatchingContextFromPage', () => {
       contexts: contextTitlesInPage.map(title => ({ items: [], title, type: 'todo' })),
       title: 'example page',
     };
-    return getMatchingContextFromPage({ contextTitle, page });
+    return findContextInPage(contextTitle, page);
   });
 
   describe('when given contextTitle matches a context in the given page', () => {
@@ -202,7 +117,7 @@ describe('getMatchingContextFromPage', () => {
   });
 });
 
-describe('getMatchingItemFromContext', () => {
+describe('findOrCreateItemInContext', () => {
   let itemTitle: string;
   beforeEach(() => itemTitle = 'example item');
 
@@ -211,15 +126,12 @@ describe('getMatchingItemFromContext', () => {
 
   const { expectSubjectToEqual } = getCommonSubjectTests(() => {
     const context: Context = {
-      items: itemTitlesInContext.map(title => ({ done: false, title })),
+      items: itemTitlesInContext.map(title => ({ title })),
       title: 'example context',
       type: 'todo',
     };
 
-    return getMatchingItemFromContext({
-      context,
-      itemTitle,
-    });
+    return findOrCreateItemInContext(itemTitle, context);
   });
 
   describe('when given itemTitle matches an item in context', () => {
@@ -243,16 +155,17 @@ describe('getMatchingItemFromContext', () => {
       itemTitlesInContext = ['example item'];
     });
 
-    it('returns undefined', () => {
-      expectSubjectToEqual(undefined);
+    it('adds new item to the end of the context items, and returns it', () => {
+      const context: Context = { items: [], title: 'context', type: 'todo' };
+      const item = findOrCreateItemInContext('new item', context);
 
-      itemTitlesInContext = [];
-      expectSubjectToEqual(undefined);
+      expect(item).toEqual({ title: 'new item' });
+      expect(context.items).toEqual([item]);
     });
   });
 });
 
-describe('getMatchingPageFromSection', () => {
+describe('findOrCreatePageInSection', () => {
   let pageTitle: string;
   beforeEach(() => pageTitle = 'example page');
 
@@ -264,7 +177,7 @@ describe('getMatchingPageFromSection', () => {
       pages: pageTitlesInSection.map(title => ({ contexts: [], title })),
       title: 'example section',
     };
-    return getMatchingPageFromSection({ pageTitle, section });
+    return findOrCreatePageInSection(pageTitle, section);
   });
 
   describe('when given pageTitle matches a page in given section', () => {
@@ -288,64 +201,69 @@ describe('getMatchingPageFromSection', () => {
       pageTitlesInSection = ['example page'];
     });
 
-    it('returns undefined', () => {
-      expectSubjectToEqual(undefined);
+    it('adds new page to section, and returns it', () => {
+      const section: Section = { pages: [], title: 'section' };
+      const newPage = findOrCreatePageInSection('new page', section);
 
-      pageTitle = 'example page with other stuff';
-      expectSubjectToEqual(undefined);
-
-      pageTitle = 'extra stuff then example page';
-      expectSubjectToEqual(undefined);
-
-      pageTitlesInSection = [];
-      expectSubjectToEqual(undefined);
+      expect(newPage).toEqual({ contexts: [], title: 'new page' });
+      expect(section.pages).toEqual([newPage]);
     });
   });
 });
 
-describe('getMatchingSection', () => {
+describe('findOrCreateSection', () => {
+  let sections: Section[];
+  beforeEach(() => sections = []);
+
   let sectionTitle: string;
-  beforeEach(() => sectionTitle = 'example section');
+  beforeEach(() => sectionTitle = '');
 
-  let existingSectionTitles: string[];
-  beforeEach(() => existingSectionTitles = []);
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => findOrCreateSection(sectionTitle, sections));
 
-  const { expectSubjectToEqual } = getCommonSubjectTests(() => {
-    const existingSections: Section[] = existingSectionTitles.map(title => ({
-      pages: [],
-      title,
-    }));
-
-    return getMatchingSection({
-      existingSections,
-      sectionTitle,
-    });
+  it('returns a section object with empty pages if title does not match an existing section', () => {
+    sectionTitle = 'asdf';
+    expectSubjectToEqual({ pages: [], title: 'asdf' });
   });
 
-  describe('when sectionTitle matches an existing section', () => {
-    beforeEach(() => {
-      sectionTitle = 'example section';
-      existingSectionTitles = ['example section', 'other section'];
-    });
+  it('returns existing section object if one is found with a matching title (case insensitive)', () => {
+    sections = [{ pages: [], title: 'existing' }];
+    sectionTitle = 'EXISTING';
 
-    it('returns found section', () => {
-      expectSubjectToEqual(expect.objectContaining({ title: 'example section' }));
+    expectSubjectToEqual({ pages: [], title: 'existing' });
+  });
+});
 
-      // case-insensitive and trimmed
-      sectionTitle = '   EXAMPLE SectION  ';
-      expectSubjectToEqual(expect.objectContaining({ title: 'example section' }));
-    });
+describe('focusItemInContext', () => {
+  let itemTitle: string | undefined;
+  beforeEach(() => itemTitle = undefined);
+
+  let context: Context;
+  beforeEach(() => {
+    context = {
+      items: [
+        { done: false, title: 'first item' },
+        { done: false, title: 'second item' },
+      ],
+      title: 'example context',
+      type: 'todo',
+    };
   });
 
-  describe('when sectionTitle does not match an existing section', () => {
-    beforeEach(() => {
-      sectionTitle = 'non-existent section';
-      existingSectionTitles = ['example section'];
-    });
+  const { getSubject } = getCommonSubjectTests(() => focusItemInContext(context, itemTitle));
 
-    it('returns undefined', () => {
-      expectSubjectToEqual(undefined);
-    });
+  it('sets focusedItemTitle to the first item title if itemTitle does not exist in any item in context', () => {
+    itemTitle = 'non-existent';
+
+    const focusedItem = getSubject();
+    expect(focusedItem?.title).toEqual('first item');
+    expect(context.focusedItemTitle).toEqual('first item');
+  });
+
+  it('returns undefined and sets focusedItemTitle to undefined if context has no items', () => {
+    context.items = [];
+    const focusedItem = getSubject();
+    expect(focusedItem).toBe(undefined);
+    expect(context.focusedItemTitle).toBe(undefined);
   });
 });
 
@@ -418,67 +336,6 @@ describe('mergeContexts', () => {
         }));
       });
     });
-  });
-});
-
-describe('mergeNoteTakers', () => {
-  let existingNoteTaker: NoteTaker;
-  beforeEach(() => existingNoteTaker = new NoteTaker());
-
-  let noteTakerToImport: NoteTaker;
-  beforeEach(() => noteTakerToImport = new NoteTaker());
-
-  const { expectSubjectToEqual, getSubject } = getCommonSubjectTests(() => mergeNoteTakers(
-    existingNoteTaker,
-    convertToExportableJSON(noteTakerToImport),
-  ));
-
-  it('returns a new NoteTaker containing all sections from both existing and the imported note taker', () => {
-    existingNoteTaker = getExampleNoteTaker();
-    noteTakerToImport = new NoteTaker([{
-      pages: [],
-      title: 'imported section',
-    }]);
-
-    const result = getSubject();
-    expect(result).toEqual(expect.any(NoteTaker));
-    expect(result.allSections).toContainEqual(expect.objectContaining({ title: 'first section' }));
-    expect(result.allSections).toContainEqual(expect.objectContaining({ title: 'imported section' }));
-  });
-
-  it('uses selected and focused titles from the imported note taker', () => {
-    existingNoteTaker = getExampleNoteTaker();
-    noteTakerToImport = new NoteTaker([{
-      pages: [],
-      title: 'imported section',
-    }]);
-
-    expectSubjectToEqual(expect.objectContaining({
-      selectedSection: expect.objectContaining({ title: 'imported section' }),
-    }));
-  });
-
-  it('matches existingNoteTaker if existingNoteTaker and the imported note taker are identical', () => {
-    existingNoteTaker = getExampleNoteTaker();
-    noteTakerToImport = getExampleNoteTaker();
-
-    expectSubjectToEqual(getExampleNoteTaker());
-  });
-
-  it('preserves all existing sections, pages, contexts and items in the existing note taker, appending any entities from the imported note taker at the end', () => {
-    existingNoteTaker = getExampleNoteTaker();
-    noteTakerToImport = new NoteTaker([{
-      pages: [],
-      title: 'imported section',
-    }]);
-
-    expectSubjectToEqual(expect.objectContaining({
-      allSections: [
-        expect.objectContaining({ title: 'first section' }),
-        expect.objectContaining({ title: 'second section' }),
-        expect.objectContaining({ title: 'imported section' }),
-      ],
-    }));
   });
 });
 
@@ -602,231 +459,212 @@ describe('mergeSections', () => {
   });
 });
 
-describe('selectContextInSelectedPage', () => {
-  let contextTitle: string;
-  beforeEach(() => contextTitle = 'context title to select');
+describe('mergeStorableNotess', () => {
+  let existingStorableNotes: StorableNotes;
+  beforeEach(() => existingStorableNotes = { sections: [] });
 
-  let existingSelectedContext: Context | undefined;
-  beforeEach(() => existingSelectedContext = undefined);
+  let storableNotesToImport: StorableNotes;
+  beforeEach(() => storableNotesToImport = { sections: [] });
 
-  let existingSelectedPage: Page | undefined;
-  beforeEach(() => existingSelectedPage = undefined);
+  const { expectSubjectToEqual, getSubject } = getCommonSubjectTests(() => mergeStorableNotes(
+    existingStorableNotes,
+    convertToExportableJSON(storableNotesToImport),
+  ));
 
-  const { expectSubjectToEqual } = getCommonSubjectTests(() => {
-    const noteTaker = new NoteTaker([]);
-    noteTaker.selectedPage = existingSelectedPage;
-    noteTaker.selectedContext = existingSelectedContext;
+  it('returns a StorableNotes object containing all sections from both existing and the imported note taker', () => {
+    existingStorableNotes = getExampleStorableNotes();
+    storableNotesToImport = { sections: [{
+      pages: [],
+      title: 'imported section',
+    }] };
 
-    selectContextInSelectedPage({ contextTitle, noteTaker });
-    return noteTaker.selectedContext;
+    const result = getSubject();
+    expect(result.sections).toContainEqual(expect.objectContaining({ title: 'first section' }));
+    expect(result.sections).toContainEqual(expect.objectContaining({ title: 'imported section' }));
   });
 
-  describe('when there is no existing selectedPage', () => {
-    beforeEach(() => existingSelectedPage = undefined);
+  it('uses selected and focused titles from the imported note taker', () => {
+    existingStorableNotes = getExampleStorableNotes();
+    storableNotesToImport = {
+      sections: [{
+        pages: [],
+        title: 'imported section',
+      }],
+      selectedSectionTitle: 'imported section',
+    };
 
-    it('sets selectedContext to undefined, if one currently exists', () => {
-      existingSelectedContext = undefined;
-      expectSubjectToEqual(undefined);
+    expectSubjectToEqual(expect.objectContaining({
+      selectedSectionTitle: 'imported section',
+    }));
+  });
 
-      existingSelectedContext = { items: [], title: 'example context', type: 'todo' };
+  it('matches existingStorableNotes if existingStorableNotes and the imported note taker are identical', () => {
+    existingStorableNotes = getExampleStorableNotes();
+    storableNotesToImport = getExampleStorableNotes();
+
+    expectSubjectToEqual(getExampleStorableNotes());
+  });
+
+  it('preserves all existing sections, pages, contexts and items in the existing note taker, appending any entities from the imported note taker at the end', () => {
+    existingStorableNotes = getExampleStorableNotes();
+    storableNotesToImport = { sections: [{
+      pages: [],
+      title: 'imported section',
+    }] };
+
+    expectSubjectToEqual(expect.objectContaining({
+      sections: [
+        expect.objectContaining({ title: 'first section' }),
+        expect.objectContaining({ title: 'second section' }),
+        expect.objectContaining({ title: 'imported section' }),
+      ],
+    }));
+  });
+});
+
+describe('selectContextInPage', () => {
+  let contextTitle: string | undefined;
+  beforeEach(() => contextTitle = undefined);
+
+  let page: Page;
+  beforeEach(() => page = { contexts: [], title: 'example page' });
+
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => selectContextInPage(page, contextTitle));
+
+  describe('when page has no contexts', () => {
+    beforeEach(() => page.contexts = []);
+    it('returns undefined, and sets activeContextTitle to undefined', () => {
       expectSubjectToEqual(undefined);
+      expect(page.activeContextTitle).toBe(undefined);
     });
   });
 
-  describe('when there is a selected page', () => {
-    beforeEach(() => {
-      existingSelectedPage = {
-        contexts: [
-          { items: [], title: 'first context', type: 'todo' },
-          { items: [], title: 'second context', type: 'todo' },
-          { items: [], title: 'third context', type: 'todo' },
-        ],
-        title: 'selected page',
-      };
-    });
+  describe('when page has contexts', () => {
+    beforeEach(() => page.contexts = [
+      { items: [], title: 'first context', type: 'todo' },
+      { items: [], title: 'second context', type: 'todo' },
+    ]);
 
-    describe('when given contextTitle matches a context in the selectedPage', () => {
-      beforeEach(() => contextTitle = 'second context');
-
-      it('sets matching context as the selectedContext', () => {
-        expectSubjectToEqual(expect.objectContaining({ title: 'second context' }));
+    describe('when contextTitle is undefined', () => {
+      beforeEach(() => contextTitle = undefined);
+      it('returns the first context, and sets activeContextTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'first context' }));
+        expect(page.activeContextTitle).toBe('first context');
       });
     });
 
-    describe('when given contextTitle does not match any contexts in the selectedPage', () => {
-      beforeEach(() => contextTitle = 'non-existent context title');
-
-      it('sets the first context in the page as the selectedContext', () => {
+    describe('when contextTitle is a string which does not match', () => {
+      beforeEach(() => contextTitle = 'context not found');
+      it('returns the first context, and sets activeContextTitle to its title', () => {
         expectSubjectToEqual(expect.objectContaining({ title: 'first context' }));
+        expect(page.activeContextTitle).toBe('first context');
+      });
+    });
 
-        existingSelectedContext = { items: [], title: 'other existing selected context', type: 'todo' };
-        existingSelectedPage = { contexts: [], title: 'page title' };
-        expectSubjectToEqual(undefined);
+    describe('when contextTitle is a string which matches an existing context', () => {
+      beforeEach(() => contextTitle = 'second context');
+      it('returns the matching context, and sets activeContextTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'second context' }));
+        expect(page.activeContextTitle).toBe('second context');
       });
     });
   });
 });
 
-describe('selectPageInSelectedSection', () => {
-  let pageTitle: string;
-  beforeEach(() => pageTitle = 'page title to select');
+describe('selectPageInSection', () => {
+  let pageTitle: string | undefined;
+  beforeEach(() => pageTitle = undefined);
 
-  let existingSelectedPage: Page | undefined;
-  beforeEach(() => existingSelectedPage = undefined);
+  let section: Section;
+  beforeEach(() => section = { pages: [], title: 'example section' });
 
-  let existingSelectedSection: Section | undefined;
-  beforeEach(() => existingSelectedSection = undefined);
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => selectPageInSection(section, pageTitle));
 
-  let noteTaker: NoteTaker;
-
-  const { expectSubjectToEqual, getSubject } = getCommonSubjectTests(() => {
-    noteTaker = new NoteTaker([]);
-    noteTaker.selectedSection = existingSelectedSection;
-    noteTaker.selectedPage = existingSelectedPage;
-
-    selectPageInSelectedSection({ noteTaker, pageTitle });
-    return noteTaker.selectedPage;
-  });
-
-  describe('when there is no existing selectedSection', () => {
-    beforeEach(() => existingSelectedSection = undefined);
-
-    it('sets selectedPage to undefined, if one currently exists', () => {
-      existingSelectedPage = undefined;
+  describe('when section has no pages', () => {
+    beforeEach(() => section.pages = []);
+    it('returns undefined, and sets activePageTitle to undefined', () => {
       expectSubjectToEqual(undefined);
-
-      existingSelectedPage = { contexts: [], title: 'example page' };
-      expectSubjectToEqual(undefined);
+      expect(section.activePageTitle).toBe(undefined);
     });
   });
 
-  describe('when there is a selected section', () => {
-    beforeEach(() => {
-      existingSelectedSection = {
-        pages: [
-          { contexts: [], title: 'first page' },
-          { contexts: [], title: 'second page' },
-          { contexts: [], title: 'third page' },
-        ],
-        title: 'selected page',
-      };
-    });
+  describe('when section has pages', () => {
+    beforeEach(() => section.pages = [
+      { contexts: [], title: 'first page' },
+      { contexts: [], title: 'second page' },
+    ]);
 
-    describe('when given pageTitle matches a page in the selectedSection', () => {
-      beforeEach(() => pageTitle = 'second page');
-
-      it('sets matching page as the selectedPage', () => {
-        expectSubjectToEqual(expect.objectContaining({ title: 'second page' }));
-      });
-
-      describe('selectedContext behaviour', () => {
-        const firstContext: Context = { items: [], title: 'first context', type: 'todo' };
-        const secondContext: Context = { items: [], title: 'second context', type: 'todo' };
-        let examplePage: Page;
-
-        beforeEach(() => {
-          examplePage = { contexts: [firstContext, secondContext], title: 'example page' };
-          existingSelectedSection = {
-            pages: [examplePage],
-            title: 'example section',
-          };
-          pageTitle = 'example page';
-        });
-
-        const { expectSubjectToEqual: expectSelectedContextToEqual } = getCommonSubjectTests(() => {
-          getSubject();
-          return noteTaker.selectedContext;
-        });
-
-        describe('when the matching page does not have any contexts', () => {
-          beforeEach(() => examplePage.contexts = []);
-          it('sets selectedContext to undefined', () => {
-            expectSelectedContextToEqual(undefined);
-          });
-        });
-
-        describe('when the matching page does not have any matching activeContextTitle, but has contexts', () => {
-          beforeEach(() => examplePage.activeContextTitle = 'non-existent context title');
-          it('sets selectedContext to the first context in the page', () => {
-            expectSelectedContextToEqual(expect.objectContaining({ title: 'first context' }));
-          });
-        });
-
-        describe('when the matching page has a matching activeContextTitle', () => {
-          beforeEach(() => examplePage.activeContextTitle = 'second context');
-          it('sets selectedContext to the matching context');
-        });
-      });
-    });
-
-    describe('when given pageTitle does not match any pages in the selectedSection', () => {
-      beforeEach(() => pageTitle = 'non-existent page title');
-
-      it('sets the first found page as the selectedPage', () => {
+    describe('when pageTitle is undefined', () => {
+      beforeEach(() => pageTitle = undefined);
+      it('returns the first page, and sets activePageTitle to its title', () => {
         expectSubjectToEqual(expect.objectContaining({ title: 'first page' }));
+        expect(section.activePageTitle).toBe('first page');
+      });
+    });
 
-        existingSelectedSection = { pages: [], title: 'existing selected section' };
-        existingSelectedPage = { contexts: [], title: 'existing selected page' };
-        expectSubjectToEqual(undefined);
+    describe('when pageTitle is a string which does not match', () => {
+      beforeEach(() => pageTitle = 'page not found');
+      it('returns the first page, and sets activePageTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'first page' }));
+        expect(section.activePageTitle).toBe('first page');
+      });
+    });
+
+    describe('when pageTitle is a string which matches an existing page', () => {
+      beforeEach(() => pageTitle = 'second page');
+      it('returns the matching page, and sets activePageTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'second page' }));
+        expect(section.activePageTitle).toBe('second page');
       });
     });
   });
 });
 
 describe('selectSection', () => {
-  it('cascades selected values and focusedItem to undefined, if one is not found', () => {
-    const noteTaker = new NoteTaker([]);
-    noteTaker.selectedSection = { pages: [], title: 'section title' };
-    noteTaker.selectedPage = { contexts: [], title: 'page title' };
-    noteTaker.selectedContext = { items: [], title: 'context title', type: 'todo' };
-    noteTaker.focusedItem = { done: false, title: 'item title' };
+  let sectionTitle: string | undefined;
+  beforeEach(() => sectionTitle = undefined);
 
-    selectSection({ noteTaker, sectionTitle: 'non-existent section' });
+  let storableNotes: StorableNotes;
+  beforeEach(() => storableNotes = { sections: [] });
 
-    expect(noteTaker.selectedSection).toBeUndefined();
-    expect(noteTaker.selectedPage).toBeUndefined();
-    expect(noteTaker.selectedContext).toBeUndefined();
-    expect(noteTaker.focusedItem).toBeUndefined();
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => selectSection(storableNotes, sectionTitle));
+
+  describe('when storableNotes has no sections', () => {
+    beforeEach(() => storableNotes.sections = []);
+    it('returns undefined, and sets selectedSectionTitle to undefined', () => {
+      expectSubjectToEqual(undefined);
+      expect(storableNotes.selectedSectionTitle).toBe(undefined);
+    });
   });
 
-  it('sets selectedSection, selectedPage, selectedContext and focusedItem, if they are found, else undefined', () => {
-    const todoItems: Todo[] = [
-      { done: false, title: 'first item' },
-      { done: false, title: 'second item' },
-    ];
-    const contexts: Context[] = [
-      { items: todoItems, title: 'first context', type: 'todo' },
-      { focusedItemTitle: 'second item', items: todoItems, title: 'second context', type: 'todo' },
-    ];
-    const pages: Page[] = [
-      { contexts, title: 'first page' },
-      { activeContextTitle: 'second context', contexts, title: 'second page' },
-    ];
-    const sections: Section[] = [
-      { pages, title: 'first section' },
-      { activePageTitle: 'second page', pages, title: 'second section' },
-    ];
+  describe('when storableNotes has sections', () => {
+    beforeEach(() => storableNotes.sections = [
+      { pages: [], title: 'first section' },
+      { pages: [], title: 'second section' },
+    ]);
 
-    const noteTaker = new NoteTaker(sections);
+    describe('when sectionTitle is undefined', () => {
+      beforeEach(() => sectionTitle = undefined);
+      it('returns the first section, and sets selectedSectionTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'first section' }));
+        expect(storableNotes.selectedSectionTitle).toBe('first section');
+      });
+    });
 
-    // selects first of everything
-    selectSection({ noteTaker, sectionTitle: 'non-existent section' });
+    describe('when sectionTitle is a string which does not match', () => {
+      beforeEach(() => sectionTitle = 'section not found');
+      it('returns the first section, and sets selectedSectionTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'first section' }));
+        expect(storableNotes.selectedSectionTitle).toBe('first section');
+      });
+    });
 
-    expect(noteTaker).toEqual(expect.objectContaining({
-      focusedItem: expect.objectContaining({ title: 'first item' }),
-      selectedContext: expect.objectContaining({ title: 'first context' }),
-      selectedPage: expect.objectContaining({ title: 'first page' }),
-      selectedSection: expect.objectContaining({ title: 'first section' }),
-    }));
-
-    // selects second of everything (because of the "active" tiitles)
-    selectSection({ noteTaker, sectionTitle: 'second section' });
-
-    expect(noteTaker).toEqual(expect.objectContaining({
-      focusedItem: expect.objectContaining({ title: 'second item' }),
-      selectedContext: expect.objectContaining({ title: 'second context' }),
-      selectedPage: expect.objectContaining({ title: 'second page' }),
-      selectedSection: expect.objectContaining({ title: 'second section' }),
-    }));
+    describe('when sectionTitle is a string which matches an existing section', () => {
+      beforeEach(() => sectionTitle = 'second section');
+      it('returns the matching section, and sets selectedSectionTitle to its title', () => {
+        expectSubjectToEqual(expect.objectContaining({ title: 'second section' }));
+        expect(storableNotes.selectedSectionTitle).toBe('second section');
+      });
+    });
   });
 });

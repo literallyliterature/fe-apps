@@ -1,24 +1,13 @@
-export type Context = {
+export interface Context {
   focusedItemTitle?: string
-  title: string
-} & ({
   items: ListItem[]
-  type: 'ordered-list' | 'unordered-list'
-} | {
-  items: Todo[]
-  type: 'todo'
-});
-
-export interface ListItem {
   title: string
+  type: 'ordered-list' | 'todo' | 'unordered-list'
 }
 
-export interface NoteTakerExportable {
-  allSections: Section[]
-  focusedItemTitle: string | undefined
-  selectedContextTitle: string | undefined
-  selectedPageTitle: string | undefined
-  selectedSectionTitle: string | undefined
+export interface ListItem {
+  done?: boolean
+  title: string
 }
 
 export interface Page {
@@ -55,6 +44,14 @@ export type SearchItem = ({
   cmd: 'help'
   code: 'help'
 } | {
+  cmd: 'list-item.done'
+  code: 'd'
+  todo: ListItem
+} | {
+  cmd: 'list-item.focus'
+  code: 'focus'
+  todo: ListItem
+} | {
   cmd: 'list-item.new'
   code: '-' | 'n'
   context: Context
@@ -80,19 +77,6 @@ export type SearchItem = ({
   cmd: 'section.select'
   code: 's'
   section: Section
-} | {
-  cmd: 'todo.done'
-  code: 'd'
-  todo: Todo
-} | {
-  cmd: 'todo.focus'
-  code: 'focus'
-  todo: Todo
-} | {
-  cmd: 'todo.new'
-  code: 'n'
-  context: Context
-  inputTitle?: string
 }) & { exactMatch?: boolean, title: string };
 
 export interface Section {
@@ -101,7 +85,7 @@ export interface Section {
   title: string
 }
 
-export interface Todo {
-  done: boolean
-  title: string
+export interface StorableNotes {
+  sections: Section[]
+  selectedSectionTitle?: string
 }
