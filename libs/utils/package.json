@@ -1,8 +1,9 @@
 {
-  "name": "note-taker",
+  "name": "utils",
   "type": "module",
   "version": "1.0.0",
-  "description": "A lib for a note-taker app",
+  "description": "Common utils which can be used in other libs",
+  "main": "index.js",
   "scripts": {
     "test": "vitest",
     "type-check": "vue-tsc --build --force"

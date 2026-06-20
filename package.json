@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "npm run dev --workspace apps/apps-host",
     "build": "npm run build-only --workspace apps/apps-host",
-    "deploy": "npm run build && npx gh-pages -d apps/apps-host/dist"
+    "deploy": "npm run build && npx gh-pages -d apps/apps-host/dist",
+    "type-check": "npm run type-check --if-present --workspaces"
   },
   "workspaces": [
     "apps/*",

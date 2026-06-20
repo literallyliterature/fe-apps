@@ -3,6 +3,14 @@
 ## Behaviour TODOs
 
 - [ ] Create all new commands
+    - [ ] createItemInContext
+    - [ ] createContextInPage
+    - [ ] createPageInSection
+    - [ ] focus
+    - [ ] markItemAsDoneInContext
+    - [ ] removeDoneFromContext
+    - [ ] removeDoneFromPage
+    - [ ] sortItemsInContext
 - [ ] Hook up to new commands (instead of methods inside NoteTaker)
 - [ ] Add edit commands
 - [ ] Add "move" commands
@@ -13,8 +21,9 @@
 
 ## UI improvements
 
+- [ ] Make text smaller
+- [ ] Create tabbed UI
 - [ ] Separate NotesContainer into different components
 - [ ] Add left/right, etc. to move between contexts, pages and sections
-- [ ] Create tabbed UI
 - [ ] Scroll to selected context when changing context
 - [ ] Ability to collapse contexts

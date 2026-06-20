@@ -1,16 +1,15 @@
-export type Command = SearchItem['cmd'];
-export type Context = ({
+export type Context = {
   focusedItemTitle?: string
+  title: string
+} & ({
   items: ListItem[]
   type: 'ordered-list' | 'unordered-list'
 } | {
-  focusedItemTitle?: string
   items: Todo[]
   type: 'todo'
-}) & { title: string };
+});
 
 export interface ListItem {
-  items?: ListItem[]
   title: string
 }
 
@@ -102,15 +101,7 @@ export interface Section {
   title: string
 }
 
-export interface StoredJSON {
-  allSections: Section[]
-  selectedContextTitle?: string
-  selectedPageTitle?: string
-  selectedSectionTitle?: string
-}
-
 export interface Todo {
   done: boolean
-  items?: Todo[]
   title: string
 }

@@ -1,6 +1,7 @@
+import { checkIfStringsMatch, normaliseStringForComparison } from 'utils';
+
 import type { Context, NoteTakerExportable, Page, Section } from './NoteTaker.types';
 
-import { checkIfStringsMatch, normaliseStringForComparison } from '../../utils';
 import { NoteTaker } from './NoteTaker';
 
 export function convertToExportable(noteTaker: NoteTaker): NoteTakerExportable {
