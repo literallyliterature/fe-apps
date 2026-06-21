@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { checkIfStringsMatch, constArrayIncludes } from 'utils';
+import { constArrayIncludes } from 'utils';
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -15,6 +15,7 @@ import {
   deleteItemFromContext,
   deletePageFromSection,
   deleteSectionFromStorableNotes,
+  editTitle,
   moveItemInContext,
   removeDoneItemsFromContext,
   selectContextInPage,
@@ -74,12 +75,6 @@ function deletePage(pageTitle: string, section: Section) {
 function deleteSection(sectionTitle: string, storableNotes: StorableNotes) {
   if (!window.confirm(`Delete section ${sectionTitle}?`)) return;
   deleteSectionFromStorableNotes(sectionTitle, storableNotes);
-}
-
-function editTitle<T extends { title: string }>(item: T, otherItems: T[]) {
-  const newTitle = window.prompt('New title', item.title) || '';
-  const isValid = newTitle && otherItems.every(item => !checkIfStringsMatch(item.title, newTitle));
-  if (isValid) item.title = newTitle;
 }
 
 function selectContext(context: Context) {

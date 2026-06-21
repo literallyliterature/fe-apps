@@ -3,6 +3,8 @@ import { constArrayIncludes, constObjectKeys } from 'utils';
 export const contextSpecificCodeTitles = {
   '-': 'New item',
   'd': 'Mark as done',
+  'delitem': 'Delete item',
+  'edititem': 'Edit item',
   'f': 'Focus item',
   'focus': 'Focus item',
   'n': 'New item',
@@ -14,6 +16,8 @@ export const contextSpecificCodeTitles = {
 
 export const pageSpecificCodeTitles = {
   c: 'Select context',
+  delcontext: 'Delete context',
+  editcontext: 'Edit context',
   nc: 'New context - todo',
   ncol: 'New context - ol',
   nctodo: 'New context - todo',
@@ -23,11 +27,15 @@ export const pageSpecificCodeTitles = {
 
 export const sectionSpecificCodeTitles = {
   '?': 'Search within section',
+  'delpage': 'Delete page',
+  'editpage': 'Edit page',
   'np': 'New page',
   'p': 'Select page',
 };
 
 export const generalCodeTitles = {
+  delsection: 'Delete section',
+  editsection: 'Edit section',
   export: 'Export JSON to clipboard',
   help: 'See available codes',
   import: 'Import JSON',

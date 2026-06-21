@@ -110,6 +110,12 @@ export function deleteSectionFromStorableNotes(sectionTitle: string, storableNot
   selectSectionInStorableNotes(storableNotes, storableNotes.selectedSectionTitle);
 }
 
+export function editTitle<T extends { title: string }>(item: T, otherItems: T[]) {
+  const newTitle = window.prompt('New title', item.title) || '';
+  const isValid = newTitle && otherItems.every(item => !checkIfStringsMatch(item.title, newTitle));
+  if (isValid) item.title = newTitle;
+}
+
 export function findContextInPage(contextTitle: string, page: Page): Context | undefined {
   return page.contexts.find(c => checkIfStringsMatch(c.title, contextTitle));
 }

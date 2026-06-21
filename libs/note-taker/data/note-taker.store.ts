@@ -8,6 +8,11 @@ import type { SearchItem } from './search-results';
 import {
   convertToExportableJSON,
   createStorableNotesFromJson,
+  deleteContextFromPage,
+  deleteItemFromContext,
+  deletePageFromSection,
+  deleteSectionFromStorableNotes,
+  editTitle,
   findContextInPage,
   findOrCreateItemInContext,
   findOrCreatePageInSection,
@@ -80,6 +85,16 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => toggleListItem(context, item.title),
         title: `${baseTitle}: ${item.title}`,
       }));
+    } else if (code === 'delitem') {
+      return matchingItems.map(item => ({
+        action: () => deleteItemFromContext(item.title, context),
+        title: `${baseTitle}: ${item.title}`,
+      }));
+    } else if (code === 'edititem') {
+      return matchingItems.map(item => ({
+        action: () => editTitle(item, context.items),
+        title: `${baseTitle}: ${item.title}`,
+      }));
     } else if (code === 'focus' || code === 'f') {
       return matchingItems.map(item => ({
         action: () => focusItemInContext(context, item.title),
@@ -142,6 +157,16 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => selectContextInPage(page, context.title),
         title: `${baseTitle}: ${context.title}`,
       }));
+    } else if (code === 'delcontext') {
+      return matchingContexts.map(context => ({
+        action: () => deleteContextFromPage(context.title, page),
+        title: `${baseTitle}: ${context.title}`,
+      }));
+    } else if (code === 'editcontext') {
+      return matchingContexts.map(context => ({
+        action: () => editTitle(context, page.contexts),
+        title: `${baseTitle}: ${context.title}`,
+      }));
     }
 
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {
@@ -197,6 +222,16 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => selectPageInSection(section, page.title),
         title: `${baseTitle}: ${page.title}`,
       }));
+    } else if (code === 'delpage') {
+      return matchingPages.map(page => ({
+        action: () => deletePageFromSection(page.title, section),
+        title: `${baseTitle}: ${page.title}`,
+      }));
+    } else if (code === 'editpage') {
+      return matchingPages.map(page => ({
+        action: () => editTitle(page, section.pages),
+        title: `${baseTitle}: ${page.title}`,
+      }));
     } else if (code === '?') {
       const allContextsWithPageTitles = section.pages.flatMap(page => page.contexts.map(context => ({
         context,
@@ -248,6 +283,16 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     if (code === 's') {
       return matchingSections.map(section => ({
         action: () => selectSectionInStorableNotes(storableNotes.value, section.title),
+        title: `${baseTitle}: ${section.title}`,
+      }));
+    } else if (code === 'delsection') {
+      return matchingSections.map(section => ({
+        action: () => deleteSectionFromStorableNotes(section.title, storableNotes.value),
+        title: `${baseTitle}: ${section.title}`,
+      }));
+    } else if (code === 'editsection') {
+      return matchingSections.map(section => ({
+        action: () => editTitle(section, storableNotes.value.allSections),
         title: `${baseTitle}: ${section.title}`,
       }));
     }
@@ -374,7 +419,8 @@ function loadInitialStorableNotes(): StorableNotes {
 
 function showHelpAlert() {
   const getAsStrings = (titlesObj: Record<string, string>) => Object.entries(titlesObj)
-    .map(([code, description]) => `${code}\t${description}`);
+    .map(([code, description]) => `${code}\t${description}`)
+    .join('\n');
 
   const joined = [
     'Context-specific:',
