@@ -6,7 +6,8 @@ export const contextSpecificCodeTitles = {
   'f': 'Focus item',
   'focus': 'Focus item',
   'n': 'New item',
-  'rc': 'Remove done items from context',
+  'rd': 'Remove done items from context',
+  'rdc': 'Remove done items from context',
   'sort': 'Sort items in context',
   'undo': 'Undo item',
 };
@@ -17,7 +18,7 @@ export const pageSpecificCodeTitles = {
   ncol: 'New context - ol',
   nctodo: 'New context - todo',
   ncul: 'New context - ul',
-  rp: 'Remove done items from page',
+  rdp: 'Remove done items from page',
 };
 
 export const sectionSpecificCodeTitles = {

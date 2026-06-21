@@ -72,7 +72,8 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {
       '-': trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
       'n': trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
-      'rc': trimmedRest ? undefined : baseTitle,
+      'rd': trimmedRest ? undefined : baseTitle,
+      'rdc': trimmedRest ? undefined : baseTitle,
       'sort': trimmedRest ? undefined : baseTitle,
     };
 
@@ -90,7 +91,8 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     const actionMapping: Record<typeof code, () => void> = {
       '-': createNewItem,
       'n': createNewItem,
-      'rc': () => removeDoneItemsFromContext(context),
+      'rd': () => removeDoneItemsFromContext(context),
+      'rdc': () => removeDoneItemsFromContext(context),
       'sort': () => sortItemsInContextAlphabetically(context),
     };
 
@@ -124,7 +126,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       ncol: trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
       nctodo: trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
       ncul: trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
-      rp: trimmedRest ? undefined : baseTitle,
+      rdp: trimmedRest ? undefined : baseTitle,
     };
 
     const title = titleMappingsWithRest[code];
@@ -146,7 +148,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       ncol: () => createNewContext('ordered-list'),
       nctodo: () => createNewContext('todo'),
       ncul: () => createNewContext('unordered-list'),
-      rp: () => removeDoneItemsFromPage(page),
+      rdp: () => removeDoneItemsFromPage(page),
     };
 
     return [{ action: actionMapping[code], title }];

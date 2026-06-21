@@ -96,35 +96,48 @@ onMounted(() => {
     if (event.isComposing)
       return;
 
-    if (event.target instanceof HTMLInputElement && event.target?.type === 'text' && searchString.value)
+    if (event.target instanceof HTMLInputElement && event.target?.type === 'text')
       return;
 
-    const specialKeys = [
-      '/',
-      'ArrowUp',
-      'ArrowDown',
-      ' ',
-      'Enter',
-    ] as const;
-
-    if (!constArrayIncludes(specialKeys, event.key)) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (event.key === '/') {
-      input.value?.focus();
-    } else if (event.key === 'ArrowUp') {
-      if (event.altKey) focusedItemActionIfSearchEmpty('move-up');
-      else focusedItemActionIfSearchEmpty('change-up');
-    } else if (event.key === 'ArrowDown') {
-      if (event.altKey) focusedItemActionIfSearchEmpty('move-down');
-      else focusedItemActionIfSearchEmpty('change-down');
-    } else {
-      focusedItemActionIfSearchEmpty('toggle');
-    }
+    actionBasedOnSpecialEventKey(event);
   });
 });
+
+const specialKeys = [
+  '/',
+  'ArrowUp',
+  'ArrowDown',
+  ' ',
+  'Enter',
+] as const;
+
+function actionBasedOnSpecialEventKey(evt: KeyboardEvent) {
+  if (!constArrayIncludes(specialKeys, evt.key)) return;
+
+  evt.preventDefault();
+  evt.stopPropagation();
+
+  if (evt.key === '/') {
+    input.value?.focus();
+  } else if (evt.key === 'ArrowUp') {
+    if (evt.altKey) focusedItemActionIfSearchEmpty('move-up');
+    else focusedItemActionIfSearchEmpty('change-up');
+  } else if (evt.key === 'ArrowDown') {
+    if (evt.altKey) focusedItemActionIfSearchEmpty('move-down');
+    else focusedItemActionIfSearchEmpty('change-down');
+  } else {
+    focusedItemActionIfSearchEmpty('toggle');
+  }
+}
+
+function doIfSearchEmpty(evt: KeyboardEvent) {
+  if (searchString.value.trim() === '' && constArrayIncludes(specialKeys, evt.key)) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    actionBasedOnSpecialEventKey(evt);
+    setTimeout(() => searchString.value = '');
+  }
+}
 
 function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'move-down' | 'move-up' | 'toggle') {
   const context = selectedContext.value;
@@ -162,6 +175,7 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
           return-object
           style="max-width: 600px"
           variant="outlined"
+          @keydown="doIfSearchEmpty($event)"
         />
       </div>
 
