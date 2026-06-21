@@ -5,8 +5,31 @@ import { computed, ref } from 'vue';
 import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 import type { SearchItem } from './search-results';
 
-import { convertToExportableJSON, createStorableNotesFromJson, findContextInPage, findOrCreateItemInContext, findOrCreatePageInSection, findOrCreateSection, focusItemInContext, getFuzzyMatches, mergeStorableNotes, removeDoneItemsFromContext, removeDoneItemsFromPage, selectContextInPage, selectPageInSection, selectSectionInStorableNotes, sortItemsInContextAlphabetically, toggleListItem } from './commands';
-import { contextSpecificCodeTitles, extractCodeAndRestFromInputText, generalCodeTitles, pageSpecificCodeTitles, sectionSpecificCodeTitles } from './search-results';
+import {
+  convertToExportableJSON,
+  createStorableNotesFromJson,
+  findContextInPage,
+  findOrCreateItemInContext,
+  findOrCreatePageInSection,
+  findOrCreateSection,
+  focusItemInContext,
+  getFuzzyMatches,
+  mergeStorableNotes,
+  removeDoneItemsFromContext,
+  removeDoneItemsFromPage,
+  selectContextInPage,
+  selectPageInSection,
+  selectSectionInStorableNotes,
+  sortItemsInContextAlphabetically,
+  toggleListItem,
+} from './commands';
+import {
+  contextSpecificCodeTitles,
+  extractCodeAndRestFromInputText,
+  generalCodeTitles,
+  pageSpecificCodeTitles,
+  sectionSpecificCodeTitles,
+} from './search-results';
 
 const LOCAL_STORAGE_KEY = 'notes_json';
 

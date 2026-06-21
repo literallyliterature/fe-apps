@@ -7,7 +7,21 @@ import { useRoute } from 'vue-router';
 import type { Context, Page, Section, StorableNotes } from '../data/NoteTaker.types.ts';
 import type { SearchItem } from '../data/search-results.ts';
 
-import { changeFocusedItemInContext, changeSelectedPageInSection, convertToExportableJSON, deleteContextFromPage, deleteItemFromContext, deletePageFromSection, deleteSectionFromStorableNotes, moveItemInContext, removeDoneItemsFromContext, selectContextInPage, selectPageInSection, selectSectionInStorableNotes, toggleListItem } from '../data/commands.ts';
+import {
+  changeFocusedItemInContext,
+  changeSelectedPageInSection,
+  convertToExportableJSON,
+  deleteContextFromPage,
+  deleteItemFromContext,
+  deletePageFromSection,
+  deleteSectionFromStorableNotes,
+  moveItemInContext,
+  removeDoneItemsFromContext,
+  selectContextInPage,
+  selectPageInSection,
+  selectSectionInStorableNotes,
+  toggleListItem,
+} from '../data/commands.ts';
 import { useNoteTakerStore } from '../data/note-taker.store.ts';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
@@ -15,7 +29,7 @@ const noteTakerStore = useNoteTakerStore();
 const { focusedItem, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
 
 const route = useRoute();
-noteTakerStore.mergeNotesFromQuery(String(route.query.notes_json));
+noteTakerStore.mergeNotesFromQuery(route.query.notes_json ? String(route.query.notes_json) : undefined);
 
 const grid = computed(() => {
   return {
