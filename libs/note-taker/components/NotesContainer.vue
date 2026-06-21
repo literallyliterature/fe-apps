@@ -164,107 +164,107 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
 <template>
   <v-container class="fill-height" fluid style="max-width: 100%">
     <div class="page-grid">
-      <div class="bottom-of-grid">
-        <v-autocomplete
-          ref="userInput"
-          v-model="selectedItem"
-          v-model:search="searchString"
-          autocomplete="off"
-          autofocus
-          auto-select-first
-          hide-details
-          hide-no-data
-          :items
-          item-title="title"
-          label="Input"
-          no-filter
-          return-object
-          style="max-width: 600px"
-          variant="outlined"
-          @keydown="doIfSearchEmpty($event)"
-        />
+      <div class="d-flex justify-space-between ga-8" style="width: 100%; align-self: start; margin-top: -16px">
+        <div style="width: 150px">
+          <div class="text-overline d-flex align-center ga-2">
+            Section
+
+            <v-icon
+              class="mt-n1"
+              icon="fa-solid fa-caret-down"
+              size="small"
+            />
+          </div>
+
+          <div v-if="selectedSection" class="font-weight-bold text-pink-lighten-1">
+            {{ selectedSection.title }}
+          </div>
+
+          <v-menu activator="parent" :close-on-content-click="false">
+            <v-card class="px-4 py-2">
+              <div
+                v-for="(section, sectionIndex) in grid.sections"
+                :key="sectionIndex"
+                class="mb-1"
+                :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
+              >
+                <EditAndDeleteButtons
+                  @click="selectSection(section)"
+                  @edit="editTitle(section, grid.sections)"
+                  @delete="deleteSection(section.title, storableNotes)"
+                >
+                  {{ section.title }}
+                </EditAndDeleteButtons>
+              </div>
+            </v-card>
+          </v-menu>
+        </div>
+
+        <div v-if="selectedSection">
+          <v-tabs
+            v-model="selectedSection.activePageTitle"
+            align-tabs="center"
+            color="pink-lighten-1"
+            density="compact"
+            @change="selectPageInSection(selectedSection, $event)"
+          >
+            <v-tab
+              v-for="page in selectedSection.pages"
+              :key="page.title"
+              :value="page.title"
+            >
+              {{ page.title }}
+            </v-tab>
+          </v-tabs>
+        </div>
+
+        <div v-if="selectedSection" style="width: 150px">
+          <div class="text-overline d-flex align-center ga-2">
+            Page
+
+            <v-icon
+              class="mt-n1"
+              icon="fa-solid fa-caret-down"
+              size="small"
+            />
+          </div>
+
+          <div v-if="selectedPage" class="font-weight-bold text-pink-lighten-1">
+            {{ selectedPage.title }}
+          </div>
+
+          <v-menu activator="parent" :close-on-content-click="false">
+            <v-card class="px-4 py-2">
+              <div
+                v-for="(page, pageIndex) in grid.pages"
+                :key="pageIndex"
+                class="mb-1"
+                :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
+              >
+                <EditAndDeleteButtons
+                  @click="selectPage(page)"
+                  @edit="editTitle(page, selectedSection.pages)"
+                  @delete="deletePage(page.title, selectedSection)"
+                >
+                  {{ page.title }}
+                </EditAndDeleteButtons>
+              </div>
+            </v-card>
+          </v-menu>
+        </div>
       </div>
-
-      <v-container class="fill-height">
-        <v-row justify="space-around" style="overflow-y: auto">
-          <v-col style="min-width: 200px">
-            <!-- Sections -->
-            <div class="text-overline">
-              Sections
-            </div>
-
-            <div
-              v-for="(section, sectionIndex) in grid.sections"
-              :key="sectionIndex"
-              class="mb-1"
-              :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
-            >
-              <EditAndDeleteButtons
-                @click="selectSection(section)"
-                @edit="editTitle(section, grid.sections)"
-                @delete="deleteSection(section.title, storableNotes)"
-              >
-                {{ section.title }}
-              </EditAndDeleteButtons>
-            </div>
-          </v-col>
-
-          <v-col
-            v-if="grid.selectedSection"
-            style="min-width: 200px"
-          >
-            <div class="text-overline">
-              Pages
-            </div>
-
-            <div
-              v-for="(page, pageIndex) in grid.pages"
-              :key="pageIndex"
-              class="mb-1"
-              :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
-            >
-              <EditAndDeleteButtons
-                @click="selectPage(page)"
-                @edit="editTitle(page, grid.selectedSection.pages)"
-                @delete="deletePage(page.title, grid.selectedSection)"
-              >
-                {{ page.title }}
-              </EditAndDeleteButtons>
-            </div>
-          </v-col>
-
-          <v-col
-            v-if="grid.selectedPage"
-            style="min-width: 200px"
-          >
-            <div class="text-overline">
-              Contexts
-            </div>
-
-            <div
-              v-for="(context, contextIndex) in grid.contexts"
-              :key="contextIndex"
-              class="mb-1"
-              :class="context === grid.selectedContext ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
-            >
-              <EditAndDeleteButtons
-                @click="selectContext(context)"
-                @edit="editTitle(context, grid.selectedPage.contexts)"
-                @delete="deleteContextFromPage(context.title, grid.selectedPage)"
-              >
-                {{ context.title }}
-              </EditAndDeleteButtons>
-            </div>
-          </v-col>
-        </v-row>
-      </v-container>
 
       <div style="overflow-y: auto">
         <div
           v-if="grid.selectedPage"
-          style="display: grid; grid: auto / 1fr 1fr; gap: 16px"
+          class="d-flex justify-center ga-4 flex-wrap"
         >
-          <div v-for="(context, contextIndex) in grid.contexts" :key="contextIndex" class="mb-8">
+          <div
+            v-for="(context, contextIndex) in grid.contexts"
+            :key="contextIndex"
+            class="mb-8"
+            style="flex: 1 0 auto; max-width: 300px"
+          >
             <v-card
               class="pa-3"
               :color="context === grid.selectedContext ? 'pink-lighten-1' : ''"
@@ -321,12 +321,35 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
                   @edit="editTitle(item, context.items)"
                   @delete="deleteContextItem(item.title, context)"
                 >
-                  <li>{{ item.title }}</li>
+                  <li :class="{ 'font-weight-bold': item === grid.focusedItem }">
+                    {{ item.title }}
+                  </li>
                 </EditAndDeleteButtons>
               </component>
             </v-card>
           </div>
         </div>
+      </div>
+
+      <div class="bottom-of-grid">
+        <v-autocomplete
+          ref="userInput"
+          v-model="selectedItem"
+          v-model:search="searchString"
+          autocomplete="off"
+          autofocus
+          auto-select-first
+          hide-details
+          hide-no-data
+          :items
+          item-title="title"
+          label="Input"
+          no-filter
+          return-object
+          style="max-width: 600px"
+          variant="outlined"
+          @keydown="doIfSearchEmpty($event)"
+        />
       </div>
     </div>
   </v-container>
@@ -337,15 +360,12 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
   width: 100%;
   height: 100%;
   display: grid;
-  grid: 1fr auto / 1fr 2fr;
   gap: 32px;
   max-height: 90vh;
 }
 
 .bottom-of-grid {
   align-self: end;
-  grid-column: 1 / 4;
-  grid-row: 2;
   width: 100%;
   max-width: 600px;
   justify-self: center;

@@ -282,7 +282,10 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
           ...newItemResults,
         ];
       } else {
-        return newItemResults;
+        return [
+          ...matchedSearchResults,
+          ...newItemResults,
+        ];
       }
     } else if (selectedPage.value) {
       return [

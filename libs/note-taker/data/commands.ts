@@ -57,7 +57,7 @@ export function changeSelectedPageInSection(section: Section, upOrDown: 'down' |
     : -1;
   const lastPageIndex = section.pages.length - 1;
 
-  if (!activePageTitle || section.pages.length <= 1 || indexOfSelectedPage) {
+  if (!activePageTitle || section.pages.length <= 1 || indexOfSelectedPage === -1) {
     const index = upOrDown === 'up' ? lastPageIndex : 0;
     section.activePageTitle = section.pages[index]?.title;
     return;
@@ -229,7 +229,7 @@ export function mergeStorableNotes(existingNotes: StorableNotes, importedNotesJs
 export function moveItemInContext(context: Context, itemTitle: string, upOrDown: 'down' | 'up'): void {
   if (context.items.length <= 1) return;
 
-  const [doneItems, unfinishedItems] = _.partition(context.items, item => item.done);
+  const [doneItems, unfinishedItems] = _.partition(context.items, item => context.type === 'todo' ? item.done : false);
   const moveFn = upOrDown === 'up' ? moveItemUp : moveItemDown;
 
   context.items = [
@@ -283,6 +283,8 @@ export function sortItemsInContextByCompletion(context: Context): void {
 }
 
 export function toggleListItem(context: Context, itemTitle: string): ListItem | undefined {
+  if (context.type !== 'todo') return;
+
   const itemIndex = context.items.findIndex(item => checkIfStringsMatch(item.title, itemTitle));
   const item = context.items[itemIndex];
 

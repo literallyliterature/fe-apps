@@ -7,7 +7,7 @@
       <v-container
         v-if="$route.path !== '/minesweeper'"
         class="fill-height"
-        :style="{ 'max-width': $route.path === '/notes' ? '95%' : '900px' }"
+        :style="{ 'max-width': $route.path === '/notes' ? '100%' : '900px' }"
       >
         <v-responsive class="fill-height mx-auto">
           <router-view />
