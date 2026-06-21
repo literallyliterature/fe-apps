@@ -93,11 +93,11 @@ watch(grid, storeToLocalStorage, { deep: true });
 const input = useTemplateRef('userInput');
 onMounted(() => {
   document.addEventListener('keydown', (event) => {
-    if (event.isComposing)
-      return;
+    if (event.isComposing) return;
 
-    if (event.target instanceof HTMLInputElement && event.target?.type === 'text')
-      return;
+    if (searchString.value) return;
+
+    if (event.target instanceof HTMLInputElement && event.target?.type === 'text') return;
 
     actionBasedOnSpecialEventKey(event);
   });

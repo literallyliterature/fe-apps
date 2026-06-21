@@ -22,8 +22,9 @@ export const pageSpecificCodeTitles = {
 };
 
 export const sectionSpecificCodeTitles = {
-  np: 'New page',
-  p: 'Select page',
+  '?': 'Search within section',
+  'np': 'New page',
+  'p': 'Select page',
 };
 
 export const generalCodeTitles = {

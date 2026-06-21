@@ -174,6 +174,20 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => selectPageInSection(section, page.title),
         title: `${baseTitle}: ${page.title}`,
       }));
+    } else if (code === '?') {
+      const allContextsWithPageTitles = section.pages.flatMap(page => page.contexts.map(context => ({
+        context,
+        page,
+        title: `${page.title} - ${context.title}`,
+      })));
+
+      return getFuzzyMatches(allContextsWithPageTitles, inputText).map(obj => ({
+        action: () => {
+          obj.page.activeContextTitle = obj.context.title;
+          selectPageInSection(section, obj.page.title);
+        },
+        title: `Select context: ${obj.title}`,
+      }));
     }
 
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {
@@ -220,7 +234,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       help: trimmedRest ? undefined : baseTitle,
       import: trimmedRest ? undefined : baseTitle,
       ns: trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
-    }; ;
+    };
 
     const title = titleMappingsWithRest[code];
 
@@ -248,6 +262,12 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     const trimmed = inputText.trim();
     if (!trimmed) return [];
 
+    const matchedSearchResults = [
+      ...getMatchedPageSearchItem(`c ${inputText}`),
+      ...getMatchedSectionSearchItem(`p ${inputText}`),
+      ...getMatchedGeneralSearchItem(`s ${inputText}`),
+    ];
+
     if (selectedContext.value) {
       const context = selectedContext.value;
       const exactlyMatches = context.items.find(item => checkIfStringsMatch(item.title, trimmed));
@@ -258,15 +278,22 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         return [
           ...getMatchedContextSearchItem(`d ${inputText}`),
           ...getMatchedContextSearchItem(`undo ${inputText}`),
+          ...matchedSearchResults,
           ...newItemResults,
         ];
       } else {
         return newItemResults;
       }
     } else if (selectedPage.value) {
-      return getMatchedPageSearchItem(`nc ${inputText}`);
+      return [
+        ...matchedSearchResults,
+        ...getMatchedPageSearchItem(`nc ${inputText}`),
+      ];
     } else if (selectedSection.value) {
-      return getMatchedSectionSearchItem(`np ${inputText}`);
+      return [
+        ...matchedSearchResults,
+        ...getMatchedSectionSearchItem(`np ${inputText}`),
+      ];
     }
 
     return [];
