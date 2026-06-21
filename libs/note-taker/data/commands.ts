@@ -66,6 +66,26 @@ export function createStorableNotesFromJson(storableNotesJson: string): Storable
   return storableNotes;
 }
 
+export function deleteContextFromPage(contextTitle: string, page: Page): void {
+  page.contexts = page.contexts.filter(c => !checkIfStringsMatch(c.title, contextTitle));
+  selectContextInPage(page, page.activeContextTitle);
+}
+
+export function deleteItemFromContext(itemTitle: string, context: Context): void {
+  context.items = context.items.filter(item => !checkIfStringsMatch(item.title, itemTitle));
+  focusItemInContext(context, context.focusedItemTitle);
+}
+
+export function deletePageFromSection(pageTitle: string, section: Section): void {
+  section.pages = section.pages.filter(c => !checkIfStringsMatch(c.title, pageTitle));
+  selectPageInSection(section, section.activePageTitle);
+}
+
+export function deleteSectionFromStorableNotes(sectionTitle: string, storableNotes: StorableNotes): void {
+  storableNotes.allSections = storableNotes.allSections.filter(s => !checkIfStringsMatch(s.title, sectionTitle));
+  selectSectionInStorableNotes(storableNotes, storableNotes.selectedSectionTitle);
+}
+
 export function findContextInPage(contextTitle: string, page: Page): Context | undefined {
   return page.contexts.find(c => checkIfStringsMatch(c.title, contextTitle));
 }
@@ -220,7 +240,7 @@ export function selectPageInSection(section: Section, pageTitle?: string): Page 
   return page;
 }
 
-export function selectSection(storableNotes: StorableNotes, sectionTitle?: string): Section | undefined {
+export function selectSectionInStorableNotes(storableNotes: StorableNotes, sectionTitle?: string): Section | undefined {
   const matchedSection = sectionTitle
     ? storableNotes.allSections.find(s => checkIfStringsMatch(s.title, sectionTitle))
     : undefined;
@@ -231,6 +251,7 @@ export function selectSection(storableNotes: StorableNotes, sectionTitle?: strin
 
 export function sortItemsInContextAlphabetically(context: Context): void {
   context.items = _.sortBy(context.items, item => item.title);
+  sortItemsInContextByCompletion(context);
 }
 
 export function sortItemsInContextByCompletion(context: Context): void {
@@ -238,11 +259,17 @@ export function sortItemsInContextByCompletion(context: Context): void {
 }
 
 export function toggleListItem(context: Context, itemTitle: string): ListItem | undefined {
-  const item = context.items.find(item => checkIfStringsMatch(item.title, itemTitle));
+  const itemIndex = context.items.findIndex(item => checkIfStringsMatch(item.title, itemTitle));
+  const item = context.items[itemIndex];
+
   if (!item) return undefined;
 
   item.done = !item.done;
   sortItemsInContextByCompletion(context);
+
+  // if the item is now done, and the new item at the same index is NOT done, then make it the focused item
+  const newItemAtIndex = context.items[itemIndex];
+  if (item.done && newItemAtIndex && !newItemAtIndex.done) focusItemInContext(context, newItemAtIndex.title);
 
   return item;
 }

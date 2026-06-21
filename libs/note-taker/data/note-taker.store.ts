@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 import type { SearchItem } from './search-results';
 
-import { convertToExportableJSON, createStorableNotesFromJson, findContextInPage, findOrCreateItemInContext, findOrCreatePageInSection, findOrCreateSection, focusItemInContext, getFuzzyMatches, mergeStorableNotes, removeDoneItemsFromContext, removeDoneItemsFromPage, selectContextInPage, selectPageInSection, selectSection, sortItemsInContextAlphabetically, toggleListItem } from './commands';
+import { convertToExportableJSON, createStorableNotesFromJson, findContextInPage, findOrCreateItemInContext, findOrCreatePageInSection, findOrCreateSection, focusItemInContext, getFuzzyMatches, mergeStorableNotes, removeDoneItemsFromContext, removeDoneItemsFromPage, selectContextInPage, selectPageInSection, selectSectionInStorableNotes, sortItemsInContextAlphabetically, toggleListItem } from './commands';
 import { contextSpecificCodeTitles, extractCodeAndRestFromInputText, generalCodeTitles, pageSpecificCodeTitles, sectionSpecificCodeTitles } from './search-results';
 
 const LOCAL_STORAGE_KEY = 'notes_json';
@@ -14,7 +14,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
   const storableNotes = ref<StorableNotes>(loadInitialStorableNotes());
 
   const selectedSection = computed<Section | undefined>(() => {
-    return selectSection(storableNotes.value, storableNotes.value.selectedSectionTitle);
+    return selectSectionInStorableNotes(storableNotes.value, storableNotes.value.selectedSectionTitle);
   });
 
   const selectedPage = computed<Page | undefined>(() => {
@@ -208,7 +208,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
 
     if (code === 's') {
       return matchingSections.map(section => ({
-        action: () => selectSection(storableNotes.value, section.title),
+        action: () => selectSectionInStorableNotes(storableNotes.value, section.title),
         title: `${baseTitle}: ${section.title}`,
       }));
     }
@@ -235,7 +235,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         const sectionTitle = (trimmedRest || window.prompt('New section title', '') || '').trim();
         if (!sectionTitle) return;
         findOrCreateSection(sectionTitle, storableNotes.value.allSections);
-        selectSection(storableNotes.value, sectionTitle);
+        selectSectionInStorableNotes(storableNotes.value, sectionTitle);
       },
     };
 

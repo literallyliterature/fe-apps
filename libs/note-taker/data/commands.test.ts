@@ -21,7 +21,7 @@ import {
   removeDoneItemsFromPage,
   selectContextInPage,
   selectPageInSection,
-  selectSection,
+  selectSectionInStorableNotes,
   sortItemsInContextAlphabetically,
   sortItemsInContextByCompletion,
   toggleListItem,
@@ -878,14 +878,14 @@ describe('selectPageInSection', () => {
   });
 });
 
-describe('selectSection', () => {
+describe('selectSectionInStorableNotes', () => {
   let sectionTitle: string | undefined;
   beforeEach(() => sectionTitle = undefined);
 
   let storableNotes: StorableNotes;
   beforeEach(() => storableNotes = { allSections: [] });
 
-  const { expectSubjectToEqual } = getCommonSubjectTests(() => selectSection(storableNotes, sectionTitle));
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => selectSectionInStorableNotes(storableNotes, sectionTitle));
 
   describe('when storableNotes has no sections', () => {
     beforeEach(() => storableNotes.allSections = []);
@@ -928,7 +928,7 @@ describe('selectSection', () => {
 });
 
 describe('sortItemsInContextAlphabetically', () => {
-  it('alphabetically sorts items inside context', () => {
+  it('alphabetically sorts items inside context and moves done items to the end', () => {
     const context: Context = {
       items: [
         { title: 'one' },
@@ -943,8 +943,8 @@ describe('sortItemsInContextAlphabetically', () => {
 
     expect(context.items).toEqual([
       { title: 'one' },
-      { done: true, title: 'three' },
       { title: 'two' },
+      { done: true, title: 'three' },
     ]);
   });
 });

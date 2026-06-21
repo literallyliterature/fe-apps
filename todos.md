@@ -3,6 +3,9 @@
 ## Behaviour TODOs
 
 - [ ] Hook up to new commands (instead of methods inside NoteTaker)
+- [ ] Coverage tests
+- [ ] Add command to "seed" data
+- [ ] Browser tests
 - [ ] Add ability to move context to different page
 - [ ] Templates
 - [ ] Add search commands - search everything and select/focus on specific thing

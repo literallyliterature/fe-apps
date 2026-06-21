@@ -1,104 +1,90 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { storeToRefs } from 'pinia';
+import { checkIfStringsMatch, constArrayIncludes } from 'utils';
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import type { Context, Page, SearchItem, Section, Todo } from '../data/NoteTaker.types';
+import type { Context, Page, Section, StorableNotes } from '../data/NoteTaker.types.ts';
+import type { SearchItem } from '../data/search-results.ts';
 
+import { changeFocusedItemInContext, convertToExportableJSON, deleteContextFromPage, deleteItemFromContext, deletePageFromSection, deleteSectionFromStorableNotes, moveItemInContext, removeDoneItemsFromContext, selectContextInPage, selectPageInSection, selectSectionInStorableNotes, toggleListItem } from '../data/commands.ts';
 import { useNoteTakerStore } from '../data/note-taker.store.ts';
-import { NoteTaker } from '../data/NoteTaker';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
-
-const selectedItem = ref(null);
+const { focusedItem, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
 
 const route = useRoute();
-const jsonFromQueryParam = route.query.notes_json;
-
 noteTakerStore.mergeNotesFromQuery(String(route.query.notes_json));
 
-const storedJSON = localStorage.getItem('notes_json');
-
-const noteTaker = ref(NoteTaker.fromJSON(_.isString(jsonFromQueryParam) ? jsonFromQueryParam : storedJSON));
-
 const grid = computed(() => {
-  const { allSections, focusedItem, selectedContext, selectedPage, selectedSection } = noteTaker.value;
   return {
-    contexts: selectedPage?.contexts || [],
-    focusedItem,
-
-    pages: selectedSection?.pages || [],
-    sections: allSections,
-
-    selectedContext,
-    selectedPage,
-
-    selectedSection,
+    contexts: selectedPage.value?.contexts ?? [],
+    focusedItem: focusedItem.value,
+    pages: selectedSection.value?.pages ?? [],
+    sections: storableNotes.value.allSections,
+    selectedContext: selectedContext.value,
+    selectedPage: selectedPage.value,
+    selectedSection: selectedSection.value,
   };
 });
 
-const items = ref<SearchItem[]>([]);
 const searchString = ref('');
+const items = computed<SearchItem[]>(() => searchString.value
+  ? noteTakerStore.getSearchItems(searchString.value)
+  : []);
 
-const getOrderedTodoItems = (items: Todo[]) => _.orderBy(items, 'done');
+const selectedItem = ref<null | SearchItem>(null);
 
-function deleteContext(context: Context) {
-  if (!window.confirm(`Delete context ${context.title}?`))
-    return;
-  noteTaker.value.removeContext(context);
-}
-function deleteContextItem(item: Context['items'][0]) {
-  if (!window.confirm(`Delete item ${item.title}?`))
-    return;
-  _.remove(grid.value.selectedContext?.items || [], i => i === item);
-}
-function deleteDoneContextItems(context: Context) {
-  if (!window.confirm(`Delete done items in ${context.title}`))
-    return;
-  noteTaker.value.removeDoneFromContext(context);
+function deleteContext(contextTitle: string, page: Page) {
+  if (!window.confirm(`Delete context: ${contextTitle}?`)) return;
+  deleteContextFromPage(contextTitle, page);
 }
 
-function deletePage(page: Page) {
-  if (!window.confirm(`Delete page ${page.title}?`))
-    return;
-  noteTaker.value.removePage(page);
+function deleteContextItem(itemTitle: string, context: Context) {
+  if (!window.confirm(`Delete item: ${itemTitle}?`)) return;
+  deleteItemFromContext(itemTitle, context);
 }
-function deleteSection(section: Section) {
-  if (!window.confirm(`Delete section ${section.title}?`))
-    return;
-  noteTaker.value.removeSection(section);
+
+function deletePage(pageTitle: string, section: Section) {
+  if (!window.confirm(`Delete page: ${pageTitle}?`)) return;
+  deletePageFromSection(pageTitle, section);
 }
-function editTitle(item: { title: string }) {
+
+function deleteSection(sectionTitle: string, storableNotes: StorableNotes) {
+  if (!window.confirm(`Delete section ${sectionTitle}?`)) return;
+  deleteSectionFromStorableNotes(sectionTitle, storableNotes);
+}
+
+function editTitle<T extends { title: string }>(item: T, otherItems: T[]) {
   const newTitle = window.prompt('New title', item.title) || '';
-  if (newTitle)
-    item.title = newTitle;
+  const isValid = newTitle && otherItems.every(item => !checkIfStringsMatch(item.title, newTitle));
+  if (isValid) item.title = newTitle;
 }
+
 function selectContext(context: Context) {
-  noteTaker.value.selectContext(context);
+  if (selectedPage.value) selectContextInPage(selectedPage.value, context.title);
 }
+
 function selectPage(page: Page) {
-  noteTaker.value.selectPage(page);
+  if (selectedSection.value) selectPageInSection(selectedSection.value, page.title);
 }
+
 function selectSection(section: Section) {
-  noteTaker.value.selectSection(section);
+  selectSectionInStorableNotes(storableNotes.value, section.title);
 }
 
 watch(selectedItem, (v) => {
-  if (!v)
-    return;
-  noteTaker.value.onSelect(v);
+  if (!v?.action) return;
+  else v.action();
+
   selectedItem.value = null;
   searchString.value = '';
-});
-watch(searchString, (v) => {
-  items.value = noteTaker.value.getSearchItems(v);
-  console.log(noteTakerStore.getSearchItems(v).map(item => item.title).join('\n'));
 });
 
 function storeToLocalStorage() {
   setTimeout(() => {
-    localStorage.setItem('notes_json', noteTaker.value.toJSON());
+    localStorage.setItem('notes_json', convertToExportableJSON(storableNotes.value));
   });
 }
 
@@ -109,31 +95,50 @@ onMounted(() => {
   document.addEventListener('keydown', (event) => {
     if (event.isComposing)
       return;
+
+    if (event.target instanceof HTMLInputElement && event.target?.type === 'text' && searchString.value)
+      return;
+
+    const specialKeys = [
+      '/',
+      'ArrowUp',
+      'ArrowDown',
+      ' ',
+      'Enter',
+    ] as const;
+
+    if (!constArrayIncludes(specialKeys, event.key)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
     if (event.key === '/') {
-      if (event.target instanceof HTMLInputElement && event.target?.type === 'text')
-        return;
-      if (input.value?.focus)
-        input.value.focus();
-      event.preventDefault();
+      input.value?.focus();
+    } else if (event.key === 'ArrowUp') {
+      if (event.altKey) focusedItemActionIfSearchEmpty('move-up');
+      else focusedItemActionIfSearchEmpty('change-up');
+    } else if (event.key === 'ArrowDown') {
+      if (event.altKey) focusedItemActionIfSearchEmpty('move-down');
+      else focusedItemActionIfSearchEmpty('change-down');
+    } else {
+      focusedItemActionIfSearchEmpty('toggle');
     }
   });
 });
 
-function doIfSearchEmpty(evt: Event, operation: () => void) {
-  if (searchString.value.trim() === '') {
-    evt.preventDefault();
-    evt.stopPropagation();
-    operation();
-    setTimeout(() => searchString.value = '');
-  }
-}
+function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'move-down' | 'move-up' | 'toggle') {
+  const context = selectedContext.value;
+  if (!context) return;
 
-function toggleFocusedItem() {
-  const { focusedItem } = grid.value;
-  if (focusedItem && 'done' in focusedItem) {
-    focusedItem.done = !focusedItem.done;
-    if (focusedItem.done) noteTaker.value.changeFocusedItem('down');
-  }
+  if (action === 'change-up') return changeFocusedItemInContext(context, 'up');
+  if (action === 'change-down') return changeFocusedItemInContext(context, 'down');
+
+  const item = focusedItem.value;
+  if (!item) return;
+
+  if (action === 'move-up') return moveItemInContext(context, item.title, 'up');
+  if (action === 'move-down') return moveItemInContext(context, item.title, 'down');
+  if (action === 'toggle') return toggleListItem(context, item.title);
 }
 </script>
 
@@ -157,12 +162,6 @@ function toggleFocusedItem() {
           return-object
           style="max-width: 600px"
           variant="outlined"
-          @keydown.alt.down="doIfSearchEmpty($event, () => noteTaker.moveFocusedItem('down'))"
-          @keydown.alt.up="doIfSearchEmpty($event, () => noteTaker.moveFocusedItem('up'))"
-          @keydown.exact.down="doIfSearchEmpty($event, () => noteTaker.changeFocusedItem('down'))"
-          @keydown.exact.up="doIfSearchEmpty($event, () => noteTaker.changeFocusedItem('up'))"
-          @keydown.enter="doIfSearchEmpty($event, toggleFocusedItem)"
-          @keydown.space="doIfSearchEmpty($event, toggleFocusedItem)"
         />
       </div>
 
@@ -180,13 +179,20 @@ function toggleFocusedItem() {
               class="mb-1"
               :class="section === grid.selectedSection ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
             >
-              <EditAndDeleteButtons @click="selectSection(section)" @edit="editTitle(section)" @delete="deleteSection(section)">
+              <EditAndDeleteButtons
+                @click="selectSection(section)"
+                @edit="editTitle(section, grid.sections)"
+                @delete="deleteSection(section.title, storableNotes)"
+              >
                 {{ section.title }}
               </EditAndDeleteButtons>
             </div>
           </v-col>
 
-          <v-col style="min-width: 200px">
+          <v-col
+            v-if="grid.selectedSection"
+            style="min-width: 200px"
+          >
             <div class="text-overline">
               Pages
             </div>
@@ -197,13 +203,20 @@ function toggleFocusedItem() {
               class="mb-1"
               :class="page === grid.selectedPage ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
             >
-              <EditAndDeleteButtons @click="selectPage(page)" @edit="editTitle(page)" @delete="deletePage(page)">
+              <EditAndDeleteButtons
+                @click="selectPage(page)"
+                @edit="editTitle(page, grid.selectedSection.pages)"
+                @delete="deletePage(page.title, grid.selectedSection)"
+              >
                 {{ page.title }}
               </EditAndDeleteButtons>
             </div>
           </v-col>
 
-          <v-col style="min-width: 200px">
+          <v-col
+            v-if="grid.selectedPage"
+            style="min-width: 200px"
+          >
             <div class="text-overline">
               Contexts
             </div>
@@ -214,7 +227,11 @@ function toggleFocusedItem() {
               class="mb-1"
               :class="context === grid.selectedContext ? 'font-weight-bold text-pink-lighten-1' : 'text-grey-darken-1'"
             >
-              <EditAndDeleteButtons @click="selectContext(context)" @edit="editTitle(context)" @delete="deleteContext(context)">
+              <EditAndDeleteButtons
+                @click="selectContext(context)"
+                @edit="editTitle(context, grid.selectedPage.contexts)"
+                @delete="deleteContextFromPage(context.title, grid.selectedPage)"
+              >
                 {{ context.title }}
               </EditAndDeleteButtons>
             </div>
@@ -223,7 +240,10 @@ function toggleFocusedItem() {
       </v-container>
 
       <div style="overflow-y: auto">
-        <div style="display: grid; grid: auto / 1fr 1fr; gap: 16px">
+        <div
+          v-if="grid.selectedPage"
+          style="display: grid; grid: auto / 1fr 1fr; gap: 16px"
+        >
           <div v-for="(context, contextIndex) in grid.contexts" :key="contextIndex" class="mb-8">
             <v-card
               class="pa-3"
@@ -235,7 +255,10 @@ function toggleFocusedItem() {
               >
                 <EditAndDeleteButtons
                   :show-delete-items="context.type === 'todo' && context.items.some(t => t.done)"
-                  @edit="editTitle(context)" @click="selectContext(context)" @delete="deleteContext(context)" @delete-items="deleteDoneContextItems(context)"
+                  @edit="editTitle(context, grid.selectedPage.contexts)"
+                  @click="selectContext(context)"
+                  @delete="deleteContext(context.title, grid.selectedPage)"
+                  @delete-items="removeDoneItemsFromContext(context)"
                 >
                   {{ context.title }}
                 </EditAndDeleteButtons>
@@ -243,12 +266,12 @@ function toggleFocusedItem() {
 
               <div v-if="context.type === 'todo'">
                 <EditAndDeleteButtons
-                  v-for="(item, itemIndex) in getOrderedTodoItems(context.items)"
+                  v-for="(item, itemIndex) in context.items"
                   :key="itemIndex"
                   :default-opacity="item.done ? '0.5' : undefined"
                   no-click-listener
-                  @edit="editTitle(item)"
-                  @delete="deleteContextItem(item)"
+                  @edit="editTitle(item, context.items)"
+                  @delete="deleteContextItem(item.title, context)"
                 >
                   <v-checkbox
                     v-model="item.done"
@@ -275,8 +298,8 @@ function toggleFocusedItem() {
                   v-for="(item, itemIndex) in context.items"
                   :key="itemIndex"
                   no-click-listener
-                  @edit="editTitle(item)"
-                  @delete="deleteContextItem(item)"
+                  @edit="editTitle(item, context.items)"
+                  @delete="deleteContextItem(item.title, context)"
                 >
                   <li>{{ item.title }}</li>
                 </EditAndDeleteButtons>

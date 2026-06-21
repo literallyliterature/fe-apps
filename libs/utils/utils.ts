@@ -11,7 +11,7 @@ export function checkIfStringsMatch(first: string, second: string) {
   return normaliseStringForComparison(first) === normaliseStringForComparison(second);
 }
 
-export function constArrayIncludes<const T>(items: T[], item: unknown): item is T {
+export function constArrayIncludes<T>(items: readonly T[], item: unknown): item is T {
   return items.some(i => isEqual(item, i));
 }
 
