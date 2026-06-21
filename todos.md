@@ -13,8 +13,5 @@
 
 ## UI improvements
 
-- [ ] Make text smaller
-- [ ] Create tabbed UI
 - [ ] Separate NotesContainer into different components
-- [ ] Scroll to selected context when changing context
 - [ ] Ability to collapse contexts

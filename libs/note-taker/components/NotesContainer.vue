@@ -50,6 +50,12 @@ const items = computed<SearchItem[]>(() => searchString.value
 
 const selectedItem = ref<null | SearchItem>(null);
 
+watch(() => selectedContext.value?.title, (newContextTitle) => {
+  if (!newContextTitle) return;
+  const el = document.getElementById(`context-card--${newContextTitle}`);
+  el?.scrollIntoView();
+}, { immediate: true });
+
 function deleteContext(contextTitle: string, page: Page) {
   if (!window.confirm(`Delete context: ${contextTitle}?`)) return;
   deleteContextFromPage(contextTitle, page);
@@ -268,24 +274,26 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
         </div>
       </div>
 
-      <div style="overflow-y: auto">
+      <div style="overflow-y: auto" class="text-body-2">
         <div
           v-if="grid.selectedPage"
-          class="d-flex justify-center ga-4 flex-wrap"
+          class="d-flex justify-space-around ga-4 flex-wrap mx-auto"
+          style="max-width: 1500px"
         >
           <div
             v-for="(context, contextIndex) in grid.contexts"
             :key="contextIndex"
             class="mb-8"
-            style="flex: 1 0 auto; max-width: 300px"
+            style="flex: none; width: 300px"
           >
             <v-card
-              class="pa-3"
+              :id="`context-card--${context.title}`"
+              class="px-3 py-2"
               :color="context === grid.selectedContext ? 'pink-lighten-1' : ''"
               variant="outlined"
             >
               <div
-                class="mb-2 font-weight-bold"
+                class="font-weight-bold"
               >
                 <EditAndDeleteButtons
                   :show-delete-items="context.type === 'todo' && context.items.some(t => t.done)"
@@ -316,7 +324,7 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
                     :label="item.title"
                   >
                     <template #label="{ label }">
-                      <div class="my-2">
+                      <div class="my-2 text-body-2">
                         {{ label }}
                       </div>
                     </template>
