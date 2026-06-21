@@ -5,13 +5,18 @@ import { useRoute } from 'vue-router';
 
 import type { Context, Page, SearchItem, Section, Todo } from '../data/NoteTaker.types';
 
+import { useNoteTakerStore } from '../data/note-taker.store.ts';
 import { NoteTaker } from '../data/NoteTaker';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
+
+const noteTakerStore = useNoteTakerStore();
 
 const selectedItem = ref(null);
 
 const route = useRoute();
 const jsonFromQueryParam = route.query.notes_json;
+
+noteTakerStore.mergeNotesFromQuery(String(route.query.notes_json));
 
 const storedJSON = localStorage.getItem('notes_json');
 
@@ -86,7 +91,10 @@ watch(selectedItem, (v) => {
   selectedItem.value = null;
   searchString.value = '';
 });
-watch(searchString, v => items.value = noteTaker.value.getSearchItems(v));
+watch(searchString, (v) => {
+  items.value = noteTaker.value.getSearchItems(v);
+  console.log(noteTakerStore.getSearchItems(v).map(item => item.title).join('\n'));
+});
 
 function storeToLocalStorage() {
   setTimeout(() => {

@@ -1,4 +1,7 @@
-import { isNil, sortBy } from 'lodash';
+import { isEqual, isNil, sortBy } from 'lodash';
+
+export function assertIsUnreachable(_unreachable: never) {
+}
 
 export function assertNotNil<T>(v: null | T | undefined): asserts v is T {
   if (isNil(v)) throw new Error(`Did not expect nil value: ${v}`);
@@ -6,6 +9,14 @@ export function assertNotNil<T>(v: null | T | undefined): asserts v is T {
 
 export function checkIfStringsMatch(first: string, second: string) {
   return normaliseStringForComparison(first) === normaliseStringForComparison(second);
+}
+
+export function constArrayIncludes<const T>(items: T[], item: unknown): item is T {
+  return items.some(i => isEqual(item, i));
+}
+
+export function constObjectKeys<const T extends object>(obj: T) {
+  return Object.keys(obj) as (keyof T)[];
 }
 
 export function moveItemDown<T>(items: T[], indexToMove: number): T[] {

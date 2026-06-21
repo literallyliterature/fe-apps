@@ -1,11 +1,12 @@
-import _ from 'lodash';
+import fuzzy from 'fuzzy';
+import _, { orderBy } from 'lodash';
 import { checkIfStringsMatch, moveItemDown, moveItemUp, normaliseStringForComparison } from 'utils';
 import { array, boolean, literal, object, string, union } from 'zod';
 
 import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 
 const noteTakerZodSchema = object({
-  sections: array(object({
+  allSections: array(object({
     activePageTitle: string().optional(),
     pages: array(object({
       activeContextTitle: string().optional(),
@@ -47,18 +48,18 @@ export function changeFocusedItemInContext(context: Context, upOrDown: 'down' | 
   context.focusedItemTitle = context.items[newIndex]?.title;
 }
 
-export function convertToExportableJSON(noteTaker: StorableNotes): string {
-  return JSON.stringify(noteTaker);
+export function convertToExportableJSON(storableNotes: StorableNotes): string {
+  return JSON.stringify(storableNotes);
 }
 
-export function createStorableNotesFromJson(noteTakerJson: string): StorableNotes {
+export function createStorableNotesFromJson(storableNotesJson: string): StorableNotes {
   let storableNotes: StorableNotes;
 
   try {
-    storableNotes = noteTakerZodSchema.parse(JSON.parse(noteTakerJson));
+    storableNotes = noteTakerZodSchema.parse(JSON.parse(storableNotesJson));
   } catch {
     storableNotes = {
-      sections: [],
+      allSections: [],
     };
   }
 
@@ -109,6 +110,11 @@ export function focusItemInContext(context: Context, itemTitle?: string): ListIt
   const item = matchedItem ?? context.items[0];
   context.focusedItemTitle = item?.title;
   return item;
+}
+
+export function getFuzzyMatches<T extends { title: string }>(items: T[], inputText: string) {
+  const filterResults = fuzzy.filter(inputText.trim(), items, { extract: item => item.title.trim() });
+  return orderBy(filterResults, ['score', 'string'], ['desc', 'asc']).map(obj => obj.original);
 }
 
 export function mergeContexts<C extends Context>(first: Context, second: C): C {
@@ -163,15 +169,15 @@ export function mergeStorableNotes(existingNotes: StorableNotes, importedNotesJs
 
   const uniqueKeyToSection: Record<string, Section> = {};
 
-  existingNotes.sections.forEach(s => uniqueKeyToSection[normaliseStringForComparison(s.title)] = s);
+  existingNotes.allSections.forEach(s => uniqueKeyToSection[normaliseStringForComparison(s.title)] = s);
 
-  generatedNoteTaker.sections.forEach((s) => {
+  generatedNoteTaker.allSections.forEach((s) => {
     const key = normaliseStringForComparison(s.title);
     const sectionFromExisting = uniqueKeyToSection[key];
     uniqueKeyToSection[key] = sectionFromExisting ? mergeSections(sectionFromExisting, s) : s;
   });
 
-  generatedNoteTaker.sections = Object.values(uniqueKeyToSection);
+  generatedNoteTaker.allSections = Object.values(uniqueKeyToSection);
 
   return generatedNoteTaker;
 }
@@ -216,9 +222,9 @@ export function selectPageInSection(section: Section, pageTitle?: string): Page 
 
 export function selectSection(storableNotes: StorableNotes, sectionTitle?: string): Section | undefined {
   const matchedSection = sectionTitle
-    ? storableNotes.sections.find(s => checkIfStringsMatch(s.title, sectionTitle))
+    ? storableNotes.allSections.find(s => checkIfStringsMatch(s.title, sectionTitle))
     : undefined;
-  const section = matchedSection ?? storableNotes.sections[0];
+  const section = matchedSection ?? storableNotes.allSections[0];
   storableNotes.selectedSectionTitle = section?.title;
   return section;
 }

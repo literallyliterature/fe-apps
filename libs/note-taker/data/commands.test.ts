@@ -1,8 +1,8 @@
+import { getCommonSubjectTests } from 'utils/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 
-import { getCommonSubjectTests } from '../../utils';
 import {
   changeFocusedItemInContext,
   convertToExportableJSON,
@@ -40,12 +40,12 @@ function getExampleStorableNotes(): StorableNotes {
     { contexts, title: 'first page' },
     { activeContextTitle: 'second context', contexts, title: 'second page' },
   ];
-  const sections: Section[] = [
+  const allSections: Section[] = [
     { pages, title: 'first section' },
     { activePageTitle: 'second page', pages, title: 'second section' },
   ];
 
-  const storableNotes: StorableNotes = { sections, selectedSectionTitle: 'second section' };
+  const storableNotes: StorableNotes = { allSections, selectedSectionTitle: 'second section' };
 
   return storableNotes;
 }
@@ -140,11 +140,11 @@ describe('createStorableNotesFromJson', () => {
   });
 
   it('returns empty note taker if input is invalid json', () => {
-    expect(createStorableNotesFromJson('asdf-zxcv')).toEqual({ sections: [] });
+    expect(createStorableNotesFromJson('asdf-zxcv')).toEqual({ allSections: [] });
   });
 
   it('returns empty note taker if input is valid JSON, but not of an exportable note taker', () => {
-    expect(createStorableNotesFromJson('{}')).toEqual({ sections: [] });
+    expect(createStorableNotesFromJson('{}')).toEqual({ allSections: [] });
   });
 });
 
@@ -541,10 +541,10 @@ describe('mergeSections', () => {
 
 describe('mergeStorableNotess', () => {
   let existingStorableNotes: StorableNotes;
-  beforeEach(() => existingStorableNotes = { sections: [] });
+  beforeEach(() => existingStorableNotes = { allSections: [] });
 
   let storableNotesToImport: StorableNotes;
-  beforeEach(() => storableNotesToImport = { sections: [] });
+  beforeEach(() => storableNotesToImport = { allSections: [] });
 
   const { expectSubjectToEqual, getSubject } = getCommonSubjectTests(() => mergeStorableNotes(
     existingStorableNotes,
@@ -553,20 +553,20 @@ describe('mergeStorableNotess', () => {
 
   it('returns a StorableNotes object containing all sections from both existing and the imported note taker', () => {
     existingStorableNotes = getExampleStorableNotes();
-    storableNotesToImport = { sections: [{
+    storableNotesToImport = { allSections: [{
       pages: [],
       title: 'imported section',
     }] };
 
     const result = getSubject();
-    expect(result.sections).toContainEqual(expect.objectContaining({ title: 'first section' }));
-    expect(result.sections).toContainEqual(expect.objectContaining({ title: 'imported section' }));
+    expect(result.allSections).toContainEqual(expect.objectContaining({ title: 'first section' }));
+    expect(result.allSections).toContainEqual(expect.objectContaining({ title: 'imported section' }));
   });
 
   it('uses selected and focused titles from the imported note taker', () => {
     existingStorableNotes = getExampleStorableNotes();
     storableNotesToImport = {
-      sections: [{
+      allSections: [{
         pages: [],
         title: 'imported section',
       }],
@@ -587,13 +587,13 @@ describe('mergeStorableNotess', () => {
 
   it('preserves all existing sections, pages, contexts and items in the existing note taker, appending any entities from the imported note taker at the end', () => {
     existingStorableNotes = getExampleStorableNotes();
-    storableNotesToImport = { sections: [{
+    storableNotesToImport = { allSections: [{
       pages: [],
       title: 'imported section',
     }] };
 
     expectSubjectToEqual(expect.objectContaining({
-      sections: [
+      allSections: [
         expect.objectContaining({ title: 'first section' }),
         expect.objectContaining({ title: 'second section' }),
         expect.objectContaining({ title: 'imported section' }),
@@ -883,12 +883,12 @@ describe('selectSection', () => {
   beforeEach(() => sectionTitle = undefined);
 
   let storableNotes: StorableNotes;
-  beforeEach(() => storableNotes = { sections: [] });
+  beforeEach(() => storableNotes = { allSections: [] });
 
   const { expectSubjectToEqual } = getCommonSubjectTests(() => selectSection(storableNotes, sectionTitle));
 
   describe('when storableNotes has no sections', () => {
-    beforeEach(() => storableNotes.sections = []);
+    beforeEach(() => storableNotes.allSections = []);
     it('returns undefined, and sets selectedSectionTitle to undefined', () => {
       expectSubjectToEqual(undefined);
       expect(storableNotes.selectedSectionTitle).toBe(undefined);
@@ -896,7 +896,7 @@ describe('selectSection', () => {
   });
 
   describe('when storableNotes has sections', () => {
-    beforeEach(() => storableNotes.sections = [
+    beforeEach(() => storableNotes.allSections = [
       { pages: [], title: 'first section' },
       { pages: [], title: 'second section' },
     ]);
