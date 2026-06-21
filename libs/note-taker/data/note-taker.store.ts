@@ -181,7 +181,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         title: `${page.title} - ${context.title}`,
       })));
 
-      return getFuzzyMatches(allContextsWithPageTitles, inputText).map(obj => ({
+      return getFuzzyMatches(allContextsWithPageTitles, trimmedRest).map(obj => ({
         action: () => {
           obj.page.activeContextTitle = obj.context.title;
           selectPageInSection(section, obj.page.title);

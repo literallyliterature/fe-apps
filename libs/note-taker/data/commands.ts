@@ -48,6 +48,30 @@ export function changeFocusedItemInContext(context: Context, upOrDown: 'down' | 
   context.focusedItemTitle = context.items[newIndex]?.title;
 }
 
+export function changeSelectedPageInSection(section: Section, upOrDown: 'down' | 'up'): void {
+  if (section.pages.length <= 1) return;
+
+  const { activePageTitle, pages } = section;
+  const indexOfSelectedPage = activePageTitle
+    ? pages.findIndex(page => checkIfStringsMatch(page.title, activePageTitle))
+    : -1;
+  const lastPageIndex = section.pages.length - 1;
+
+  if (!activePageTitle || section.pages.length <= 1 || indexOfSelectedPage) {
+    const index = upOrDown === 'up' ? lastPageIndex : 0;
+    section.activePageTitle = section.pages[index]?.title;
+    return;
+  }
+
+  const newIndex: number = (() => {
+    if (indexOfSelectedPage === 0 && upOrDown === 'up') return lastPageIndex;
+    if (indexOfSelectedPage === lastPageIndex && upOrDown === 'down') return 0;
+    return indexOfSelectedPage + (upOrDown === 'up' ? -1 : 1);
+  })();
+
+  section.activePageTitle = section.pages[newIndex]?.title;
+}
+
 export function convertToExportableJSON(storableNotes: StorableNotes): string {
   return JSON.stringify(storableNotes);
 }

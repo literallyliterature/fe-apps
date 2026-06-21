@@ -7,7 +7,7 @@ import { useRoute } from 'vue-router';
 import type { Context, Page, Section, StorableNotes } from '../data/NoteTaker.types.ts';
 import type { SearchItem } from '../data/search-results.ts';
 
-import { changeFocusedItemInContext, convertToExportableJSON, deleteContextFromPage, deleteItemFromContext, deletePageFromSection, deleteSectionFromStorableNotes, moveItemInContext, removeDoneItemsFromContext, selectContextInPage, selectPageInSection, selectSectionInStorableNotes, toggleListItem } from '../data/commands.ts';
+import { changeFocusedItemInContext, changeSelectedPageInSection, convertToExportableJSON, deleteContextFromPage, deleteItemFromContext, deletePageFromSection, deleteSectionFromStorableNotes, moveItemInContext, removeDoneItemsFromContext, selectContextInPage, selectPageInSection, selectSectionInStorableNotes, toggleListItem } from '../data/commands.ts';
 import { useNoteTakerStore } from '../data/note-taker.store.ts';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
@@ -106,6 +106,8 @@ onMounted(() => {
 const specialKeys = [
   '/',
   'ArrowUp',
+  'ArrowLeft',
+  'ArrowRight',
   'ArrowDown',
   ' ',
   'Enter',
@@ -125,7 +127,11 @@ function actionBasedOnSpecialEventKey(evt: KeyboardEvent) {
   } else if (evt.key === 'ArrowDown') {
     if (evt.altKey) focusedItemActionIfSearchEmpty('move-down');
     else focusedItemActionIfSearchEmpty('change-down');
-  } else {
+  } else if (evt.key === 'ArrowLeft') {
+    if (evt.altKey && selectedSection.value) changeSelectedPageInSection(selectedSection.value, 'up');
+  } else if (evt.key === 'ArrowRight') {
+    if (evt.altKey && selectedSection.value) changeSelectedPageInSection(selectedSection.value, 'down');
+  } else if (evt.key === ' ' || evt.key === 'Enter') {
     focusedItemActionIfSearchEmpty('toggle');
   }
 }
