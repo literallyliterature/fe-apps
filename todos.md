@@ -1,5 +1,7 @@
 # TODOs
 
+- [ ] fix sorting of items after finishing by clicking
+
 ## Behaviour TODOs
 
 - [ ] Add written edit and delete commands

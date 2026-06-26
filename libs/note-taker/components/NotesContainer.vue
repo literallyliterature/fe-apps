@@ -313,13 +313,15 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
                   <v-checkbox
                     v-model="item.done"
                     class="my-n1"
-                    :class="{ 'font-weight-bold': item === grid.focusedItem }"
                     density="comfortable"
                     hide-details
                     :label="item.title"
                   >
                     <template #label="{ label }">
-                      <div class="my-2 text-body-2">
+                      <div
+                        :class="{ 'font-weight-bold': item === grid.focusedItem }"
+                        class="my-2 text-body-2"
+                      >
                         {{ label }}
                       </div>
                     </template>
