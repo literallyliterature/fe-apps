@@ -2,7 +2,6 @@
 
 ## Behaviour TODOs
 
-- [ ] Add written edit and delete commands
 - [ ] Add ability to move contexts between each other
 - [ ] Add ability to move context to different page
 - [ ] Templates
