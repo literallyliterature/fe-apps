@@ -21,6 +21,7 @@ import {
   selectContextInPage,
   selectPageInSection,
   selectSectionInStorableNotes,
+  sortItemsInContextByCompletion,
   toggleListItem,
 } from '../data/commands.ts';
 import { useNoteTakerStore } from '../data/note-taker.store.ts';
@@ -316,6 +317,7 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
                     density="comfortable"
                     hide-details
                     :label="item.title"
+                    @change="sortItemsInContextByCompletion(context)"
                   >
                     <template #label="{ label }">
                       <div
