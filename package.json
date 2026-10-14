@@ -9,6 +9,7 @@
     "dev": "npm run dev --workspace apps/apps-host",
     "build": "npm run build-only --workspace apps/apps-host",
     "deploy": "npm run build && npx gh-pages -d apps/apps-host/dist",
+    "test": "vitest",
     "type-check": "npm run type-check --if-present --workspaces"
   },
   "workspaces": [
@@ -19,7 +20,7 @@
     "fuzzy": "^0.1.3",
     "lodash": "^4.17.21",
     "pinia": "^3.0.4",
-    "vitest": "^3.1.4",
+    "vitest": "^5.0.4",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
     "vuetify": "^3.7.19",
