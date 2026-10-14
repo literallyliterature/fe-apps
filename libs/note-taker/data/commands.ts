@@ -305,3 +305,7 @@ export function toggleListItem(context: Context, itemTitle: string): ListItem | 
 
   return item;
 }
+
+export function toggleWideContext(context: Context): void {
+  context.wide = !context.wide;
+}

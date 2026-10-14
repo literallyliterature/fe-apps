@@ -3,6 +3,7 @@ export interface Context {
   items: ListItem[]
   title: string
   type: 'ordered-list' | 'todo' | 'unordered-list'
+  wide?: boolean
 }
 
 export interface ListItem {

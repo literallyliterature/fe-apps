@@ -12,6 +12,7 @@ export const contextSpecificCodeTitles = {
   'rdc': 'Remove done items from context',
   'sort': 'Sort items in context',
   'undo': 'Undo item',
+  'wide': 'Toggle wide context',
 };
 
 export const pageSpecificCodeTitles = {

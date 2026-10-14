@@ -280,7 +280,8 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
             v-for="(context, contextIndex) in grid.contexts"
             :key="contextIndex"
             class="mb-8"
-            style="flex: none; width: 300px"
+            style="flex: none"
+            :style="{ width: context?.wide ? '600px' : '300px' }"
           >
             <v-card
               :id="`context-card--${context.title}`"

@@ -25,6 +25,7 @@ import {
   sortItemsInContextAlphabetically,
   sortItemsInContextByCompletion,
   toggleListItem,
+  toggleWideContext,
 } from './commands';
 
 function getExampleStorableNotes(): StorableNotes {
@@ -1012,5 +1013,18 @@ describe('toggleListItem', () => {
       { title: 'second item' },
       { done: true, title: 'first item' },
     ]);
+  });
+});
+
+describe('toggleWideContext', () => {
+  it('toggles wide property of context', () => {
+    const context: Context = { items: [], title: 'example', type: 'todo' };
+    expect(context.wide).toBe(undefined);
+    toggleWideContext(context);
+    expect(context.wide).toBe(true);
+    toggleWideContext(context);
+    expect(context.wide).toBe(false);
+    toggleWideContext(context);
+    expect(context.wide).toBe(true);
   });
 });

@@ -27,6 +27,7 @@ import {
   selectSectionInStorableNotes,
   sortItemsInContextAlphabetically,
   toggleListItem,
+  toggleWideContext,
 } from './commands';
 import {
   contextSpecificCodeTitles,
@@ -113,6 +114,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       'rd': trimmedRest ? undefined : baseTitle,
       'rdc': trimmedRest ? undefined : baseTitle,
       'sort': trimmedRest ? undefined : baseTitle,
+      'wide': trimmedRest ? undefined : baseTitle,
     };
 
     const title = titleMappingsWithRest[code];
@@ -132,6 +134,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       'rd': () => removeDoneItemsFromContext(context),
       'rdc': () => removeDoneItemsFromContext(context),
       'sort': () => sortItemsInContextAlphabetically(context),
+      'wide': () => toggleWideContext(context),
     };
 
     return [{ action: actionMapping[code], title }];
