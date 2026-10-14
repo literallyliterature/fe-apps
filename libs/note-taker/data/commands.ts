@@ -126,6 +126,7 @@ export function findOrCreateItemInContext(itemTitle: string, context: Context): 
 
   const newItem: ListItem = { title: itemTitle };
   context.items.push(newItem);
+  sortItemsInContextByCompletion(context);
   return newItem;
 }
 

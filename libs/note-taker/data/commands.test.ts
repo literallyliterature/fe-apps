@@ -244,6 +244,28 @@ describe('findOrCreateItemInContext', () => {
       expect(context.items).toEqual([item]);
     });
   });
+
+  it('sorts items by completion after adding new item', () => {
+    const exampleContext: Context = {
+      items: [
+        { title: 'one' },
+        { done: true, title: 'two' },
+        { title: 'three' },
+        { done: true, title: 'four' },
+      ],
+      title: 'exampleContext',
+      type: 'todo',
+    };
+    findOrCreateItemInContext('new item', exampleContext);
+
+    expect(exampleContext.items.map(obj => obj.title)).toEqual([
+      'one',
+      'three',
+      'new item',
+      'two',
+      'four',
+    ]);
+  });
 });
 
 describe('findOrCreatePageInSection', () => {
