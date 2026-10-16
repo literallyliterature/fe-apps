@@ -23,8 +23,8 @@ import {
   selectSectionInStorableNotes,
   sortItemsInContextByCompletion,
   toggleListItem,
-} from '../data/commands.ts';
-import { useNoteTakerStore } from '../data/note-taker.store.ts';
+} from '../data/commands';
+import { useNoteTakerStore } from '../data/note-taker.store';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
