@@ -121,6 +121,14 @@
           style="max-width: 1500px"
         >
           <div
+            v-if="focusedItem"
+            class="text-headline-large font-weight-bold text-pink-lighten-1"
+            style="position: absolute; top: 125px"
+          >
+            {{ focusedItem.title }}
+          </div>
+
+          <div
             v-for="(context, contextIndex) in grid.contexts"
             :key="contextIndex"
             class="mb-8"
