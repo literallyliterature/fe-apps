@@ -1,7 +1,18 @@
 import { getCommonSubjectTests } from 'utils/test-utils';
-import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
-import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
+import type {
+  Context,
+  ListItem,
+  Page,
+  Section,
+  StorableNotes,
+} from './NoteTaker.types';
 
 import {
   changeFocusedItemInContext,

@@ -1,20 +1,12 @@
-<script lang="ts" setup>
-const {
-  defaultOpacity = '0.8',
-  noClickListener = false,
-  showDeleteItems = false,
-} = defineProps<{
-  defaultOpacity?: string
-  noClickListener?: boolean
-  showDeleteItems?: boolean
-}>();
-defineEmits(['click', 'edit', 'delete', 'delete-items']);
-</script>
-
 <template>
   <v-hover>
     <template #default="{ isHovering, props }">
-      <v-row v-bind="props" align="center" no-gutters :style="isHovering ? 'opacity: 1' : `opacity: ${defaultOpacity}`">
+      <v-row
+        class="align-center"
+        v-bind="props"
+        no-gutters
+        :style="isHovering ? 'opacity: 1' : `opacity: ${defaultOpacity}`"
+      >
         <v-col @click="$emit('click')">
           <div :style="!noClickListener ? 'cursor: pointer' : ''">
             <slot />
@@ -28,20 +20,35 @@ defineEmits(['click', 'edit', 'delete', 'delete-items']);
         >
           <v-btn
             v-if="showDeleteItems"
-            class="ml-1" icon size="x-small" variant="text" @click="$emit('delete-items')"
+            class="ml-1"
+            icon
+            size="x-small"
+            variant="text"
+            @click="$emit('delete-items')"
           >
             <v-icon size="small">
               fa-solid fa-list-check
             </v-icon>
           </v-btn>
 
-          <v-btn class="ml-1" icon size="x-small" variant="text" @click="$emit('edit')">
+          <v-btn
+            class="ml-1"
+            icon
+            size="x-small"
+            variant="text"
+            @click="$emit('edit')"
+          >
             <v-icon size="small">
               fa-solid fa-pencil-alt
             </v-icon>
           </v-btn>
 
-          <v-btn icon size="x-small" variant="text" @click="$emit('delete')">
+          <v-btn
+            icon
+            size="x-small"
+            variant="text"
+            @click="$emit('delete')"
+          >
             <v-icon size="small">
               fa-solid fa-trash
             </v-icon>
@@ -51,3 +58,16 @@ defineEmits(['click', 'edit', 'delete', 'delete-items']);
     </template>
   </v-hover>
 </template>
+
+<script lang="ts" setup>
+const {
+  defaultOpacity = '0.8',
+  noClickListener = false,
+  showDeleteItems = false,
+} = defineProps<{
+  defaultOpacity?: string;
+  noClickListener?: boolean;
+  showDeleteItems?: boolean;
+}>();
+defineEmits(['click', 'edit', 'delete', 'delete-items']);
+</script>

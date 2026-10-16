@@ -16,7 +16,7 @@ export const contextSpecificCodeTitles = {
 };
 
 export const itemSpecificCodeTitles = {
-  'snooze': 'Snooze item',
+  snooze: 'Snooze item',
 };
 
 export const pageSpecificCodeTitles = {
@@ -58,14 +58,14 @@ export const codeTitles = {
 
 export type SearchInputCode = keyof typeof codeTitles;
 export interface SearchItem {
-  action: () => void
-  title: string
+  action: () => void;
+  title: string;
 }
 export const allCodes = constObjectKeys(codeTitles);
 
 export function extractCodeAndRestFromInputText(inputText: string): {
-  code?: SearchInputCode
-  rest: string
+  code?: SearchInputCode;
+  rest: string;
 } {
   const elements = inputText.split(' ');
   const potentialCode = elements[0];

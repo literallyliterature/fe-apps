@@ -1,3 +1,80 @@
+<template>
+  <div style="touch-action: manipulation">
+    <v-row
+      class="justify-center"
+      no-gutters
+      style="min-width: fit-content"
+    >
+      <v-col
+        cols="auto"
+        style="border:1px solid grey;"
+      >
+        <v-row
+          v-for="(row, rowIndex) in blocks"
+          :key="`row-${rowIndex}`"
+          class="flex-nowrap"
+          no-gutters
+        >
+          <v-col
+            v-for="(cell, colIndex) in row"
+            :key="`row-${rowIndex}-col-${colIndex}`"
+            cols="auto"
+          >
+            <v-hover>
+              <template #default="{ isHovering }">
+                <v-btn
+                  class="px-0 text-body-large font-weight-bold"
+                  dark
+                  :disabled="(messedUp && !cell.isMine)"
+                  variant="plain"
+                  tile
+                  style="box-sizing:border-box; border: 1px solid #272727; color: #b8b8b8; width: 64px; height: 64px;"
+                  :style="{
+                    'background-color': isHovering && !cell.isVisible && !cell.isFlagged
+                      ? '#555'
+                      : getColour(rowIndex, colIndex),
+                  }"
+                  @mouseover="sendHoverData(rowIndex, colIndex)"
+                  @click.left.prevent.stop="() => mobileMode
+                    ? (cell.isVisible
+                      ? middleClick(rowIndex, colIndex)
+                      : rightClick(rowIndex, colIndex))
+                    : leftClick(rowIndex, colIndex)"
+                  @click.middle.prevent.stop="middleClick(rowIndex, colIndex)"
+                  @contextmenu.prevent.stop="() => mobileMode
+                    ? leftClick(rowIndex, colIndex)
+                    : rightClick(rowIndex, colIndex)"
+                >
+                  <span v-if="cell.isFlagged || isGameWon">
+                    <v-icon
+                      size="large"
+                      color="green"
+                    >
+                      fa-solid fa-flag
+                    </v-icon>
+                  </span>
+                  <span v-else-if="messedUp && cell.isMine">
+                    <v-icon
+                      size="large"
+                      color="error"
+                    >
+                      fa-solid fa-bomb
+                    </v-icon>
+                  </span>
+                  <span v-else-if="(cell.isVisible && cell.surrounding !== 0)">
+                    {{ cell.surrounding }}
+                  </span>
+                  <span v-else>&nbsp;</span>
+                </v-btn>
+              </template>
+            </v-hover>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </div>
+</template>
+
 <script>
 function getRandomInt(max, min = 0) {
   const intmin = Math.ceil(min);
@@ -7,6 +84,7 @@ function getRandomInt(max, min = 0) {
 }
 
 export default {
+
   data: () => ({
     blocks: [],
     connHoverRow: -1,
@@ -246,7 +324,6 @@ export default {
       this.blocks[row][col].surrounding = cellsWithMines.length;
     },
   },
-
   props: {
     mobileMode: {
       default: false,
@@ -278,80 +355,3 @@ export default {
   },
 };
 </script>
-
-<template>
-  <div style="touch-action: manipulation">
-    <v-row
-      justify="center"
-      no-gutters
-      style="min-width: fit-content"
-    >
-      <v-col
-        cols="auto"
-        style="border:1px solid grey;"
-      >
-        <v-row
-          v-for="(row, rowIndex) in blocks"
-          :key="`row-${rowIndex}`"
-          class="flex-nowrap"
-          no-gutters
-        >
-          <v-col
-            v-for="(cell, colIndex) in row"
-            :key="`row-${rowIndex}-col-${colIndex}`"
-            cols="auto"
-          >
-            <v-hover>
-              <template #default="{ isHovering }">
-                <v-btn
-                  class="px-0 text-body-1 font-weight-bold"
-                  dark
-                  :disabled="(messedUp && !cell.isMine)"
-                  variant="plain"
-                  tile
-                  style="box-sizing:border-box; border: 1px solid #272727; color: #b8b8b8; width: 64px; height: 64px;"
-                  :style="{
-                    'background-color': isHovering && !cell.isVisible && !cell.isFlagged
-                      ? '#555'
-                      : getColour(rowIndex, colIndex),
-                  }"
-                  @mouseover="sendHoverData(rowIndex, colIndex)"
-                  @click.left.prevent.stop="() => mobileMode
-                    ? (cell.isVisible
-                      ? middleClick(rowIndex, colIndex)
-                      : rightClick(rowIndex, colIndex))
-                    : leftClick(rowIndex, colIndex)"
-                  @click.middle.prevent.stop="middleClick(rowIndex, colIndex)"
-                  @contextmenu.prevent.stop="() => mobileMode
-                    ? leftClick(rowIndex, colIndex)
-                    : rightClick(rowIndex, colIndex)"
-                >
-                  <span v-if="cell.isFlagged || isGameWon">
-                    <v-icon
-                      size="large"
-                      color="green"
-                    >
-                      fa-solid fa-flag
-                    </v-icon>
-                  </span>
-                  <span v-else-if="messedUp && cell.isMine">
-                    <v-icon
-                      size="large"
-                      color="error"
-                    >
-                      fa-solid fa-bomb
-                    </v-icon>
-                  </span>
-                  <span v-else-if="(cell.isVisible && cell.surrounding !== 0)">
-                    {{ cell.surrounding }}
-                  </span>
-                  <span v-else>&nbsp;</span>
-                </v-btn>
-              </template>
-            </v-hover>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </div>
-</template>

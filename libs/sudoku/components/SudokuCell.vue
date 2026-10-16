@@ -1,5 +1,37 @@
+<template>
+  <div
+    ref="cellDiv"
+    class="sudoku-cell d-flex"
+    tabindex="0"
+    :readonly="readonly"
+    style="font-size: 11px"
+    :style="{ background: backgroundColour }"
+    @focus="handleFocus"
+    @keydown.prevent="handleKeydown"
+  >
+    <div
+      v-if="cell.original !== ' '"
+      style="color: #cacaca; font-size: 20px"
+      v-text="cell.correctValue" />
+    <div
+      v-else-if="cell.userInput !== ' '"
+      style="font-size: 20px"
+      :style="mistake ? 'color: #ff3a00' : 'color: #dadada'"
+      v-text="cell.userInput" />
+    <div
+      v-else
+      class="font-weight-bold"
+      style="max-width: 35px; font-size: 9px; color: #c2c2c2"
+      v-text="displayedNotes" />
+  </div>
+</template>
+
 <script lang="ts">
-import { computed, defineComponent, useTemplateRef } from 'vue';
+import {
+  computed,
+  defineComponent,
+  useTemplateRef,
+} from 'vue';
 
 export default defineComponent({
   name: 'SudokuCell',
@@ -67,37 +99,6 @@ export default defineComponent({
   },
 });
 </script>
-
-<template>
-  <div
-    ref="cellDiv"
-    class="sudoku-cell d-flex"
-    tabindex="0"
-    :readonly="readonly"
-    style="font-size: 11px"
-    :style="{ background: backgroundColour }"
-    @focus="handleFocus"
-    @keydown.prevent="handleKeydown"
-  >
-    <div
-      v-if="cell.original !== ' '"
-      style="color: #cacaca; font-size: 20px"
-      v-text="cell.correctValue"
-    />
-    <div
-      v-else-if="cell.userInput !== ' '"
-      style="font-size: 20px"
-      :style="mistake ? 'color: #ff3a00' : 'color: #dadada'"
-      v-text="cell.userInput"
-    />
-    <div
-      v-else
-      class="font-weight-bold"
-      style="max-width: 35px; font-size: 9px; color: #c2c2c2"
-      v-text="displayedNotes"
-    />
-  </div>
-</template>
 
 <style>
 .sudoku-cell {

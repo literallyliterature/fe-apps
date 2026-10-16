@@ -1,3 +1,210 @@
+<template>
+  <v-row
+    class="justify-center"
+    no-gutters
+    style="max-width: 400px; margin: auto"
+  >
+    <v-col
+      v-if="game && (gameStatus === 'started' || gameStatus === 'completed')"
+      cols="auto"
+    >
+      <div style="margin: 1px">
+        <v-row
+          v-for="squareRow in 3"
+          :key="squareRow"
+          no-gutters
+        >
+          <v-col
+            v-for="squareCol in 3"
+            :key="squareCol"
+            cols="auto"
+            no-gutters
+          >
+            <div style="margin: 1px">
+              <v-row
+                v-for="rowIndex in 3"
+                :key="rowIndex"
+                no-gutters
+              >
+                <v-col
+                  v-for="colIndex in 3"
+                  :key="colIndex"
+                >
+                  <SudokuCell
+                    :ref="`cell-${getRowIndex(squareRow, rowIndex)}-${getColIndex(squareCol, colIndex)}`"
+                    :cell="game.cells[getRowIndex(squareRow, rowIndex)][getColIndex(squareCol, colIndex)]"
+                    :is-focused="getRowIndex(squareRow, rowIndex) === game.focusedRow
+                      && getColIndex(squareCol, colIndex) === game.focusedCol"
+                    :is-game-complete="gameStatus === 'completed'"
+                    :mistake="checkIfCellHasAMistake({
+                      squareRow, rowIndex, squareCol, colIndex,
+                    })"
+                    @focused="setFocusedRowAndCol"
+                    @key-pressed="triggerKeyPress" />
+                </v-col>
+              </v-row>
+            </div>
+          </v-col>
+        </v-row>
+      </div>
+
+      <SudokuControls
+        v-if="gameStatus === 'started'"
+        v-model:in-notes-mode="inNotesMode"
+        class="mt-12"
+        :disable-undo-button="!savedUndoStates.length"
+        @action="triggerUserAction"
+        @undo="undoState" />
+    </v-col>
+
+    <v-col
+      v-if="gameStatus === 'completed'"
+      cols="12" />
+
+    <v-col
+      v-if="gameStatus !== 'started'"
+      cols="auto"
+      class="mt-12"
+    >
+      <v-chip-group
+        v-model="selectedDifficulty"
+        color="primary"
+        column
+        mandatory
+      >
+        <v-chip
+          v-for="difficulty in ['easy', 'medium', 'hard', 'expert']"
+          :key="difficulty"
+          variant="outlined"
+          :value="difficulty"
+          v-text="difficulty" />
+      </v-chip-group>
+
+      <v-btn
+        block
+        class="mt-4"
+        color="primary-darken-3"
+        size="small"
+        @click="initialiseGame(selectedDifficulty)"
+      >
+        Start
+      </v-btn>
+    </v-col>
+
+    <v-col
+      v-if="gameStatus === 'started'"
+      class="mt-6"
+      cols="8"
+    >
+      <v-btn
+        block
+        color="secondary"
+        variant="outlined"
+        @click="checkForMistakes"
+      >
+        Check for mistakes
+      </v-btn>
+    </v-col>
+
+    <v-col
+      v-if="gameStatus === 'started'"
+      class="mt-6"
+      cols="8"
+    >
+      <v-menu
+        v-model="showingMenu"
+        location="bottom"
+        :close-on-content-click="false"
+        offset-y
+        @update:model-value="resetSaveInput"
+      >
+        <template #activator="{ props }">
+          <v-btn
+            block
+            color="secondary"
+            variant="outlined"
+            v-bind="props"
+          >
+            Save states
+          </v-btn>
+        </template>
+
+        <v-card
+          color="pink-lighten-5"
+          min-width="150px"
+        >
+          <div
+            v-if="!showNewSaveInput"
+            class="text-left pa-4"
+            :class="savedStates.length ? 'pb-0' : ''"
+          >
+            <button
+              class="pb-3"
+              @click="showNewSaveInput = true"
+            >
+              <a class="text-body-medium">
+                Save current state
+              </a>
+            </button>
+          </div>
+          <v-form
+            v-else
+            class="pa-2 pl-4 pb-4"
+            @submit.prevent="saveState"
+          >
+            <v-text-field
+              v-model="newSaveStateLabel"
+              autofocus
+              hide-details
+              label="Save state as"
+              @blur="saveState" />
+          </v-form>
+
+          <v-list
+            v-if="savedStates.length"
+            color="primary"
+            density="compact"
+          >
+            <v-list-item
+              v-for="(savedState, index) in savedStates"
+              :key="index"
+              @click="restoreState(savedState.cells)"
+            >
+              {{ savedState.label }}
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </v-col>
+
+    <v-fade-transition>
+      <v-col
+        v-if="gameStatus === 'started' && savedRedoStates.length"
+        class="mt-6"
+        cols="8"
+      >
+        <v-btn
+          block
+          color="secondary"
+          variant="outlined"
+          @click="redoState"
+        >
+          Redo
+        </v-btn>
+      </v-col>
+    </v-fade-transition>
+
+    <v-snackbar
+      v-model="showingSnackbar"
+      class="mb-8"
+      :color="snackbarColour"
+      location="bottom"
+    >
+      {{ snackbarText }}
+    </v-snackbar>
+  </v-row>
+</template>
+
 <script lang="ts">
 import {
   cloneDeep,
@@ -5,7 +212,12 @@ import {
   flattenDeep,
   uniqBy,
 } from 'lodash';
-import { computed, defineComponent, ref, useTemplateRef } from 'vue';
+import {
+  computed,
+  defineComponent,
+  ref,
+  useTemplateRef,
+} from 'vue';
 
 import type {
   CellRange,
@@ -22,26 +234,26 @@ import SudokuCell from './SudokuCell.vue';
 import SudokuControls from './SudokuControls.vue';
 
 interface CheckMistakesInput {
-  colIndex: number
-  rowIndex: number
-  squareCol: number
-  squareRow: number
+  colIndex: number;
+  rowIndex: number;
+  squareCol: number;
+  squareRow: number;
 }
 interface InputRowAndCol {
-  col: CellRange | undefined
-  row: CellRange | undefined
+  col: CellRange | undefined;
+  row: CellRange | undefined;
 }
 interface SavedState {
-  cells: SudokuCellType[][]
-  label: string
+  cells: SudokuCellType[][];
+  label: string;
 }
 interface SudokuGame {
-  cells: SudokuCellType[][]
-  difficulty: SudokuGameDifficulty
-  focusedCol: CellRange | undefined
-  focusedRow: CellRange | undefined
-  gameString: string
-  originalsString: string
+  cells: SudokuCellType[][];
+  difficulty: SudokuGameDifficulty;
+  focusedCol: CellRange | undefined;
+  focusedRow: CellRange | undefined;
+  gameString: string;
+  originalsString: string;
 }
 type SudokuGameDifficulty = 'easy' | 'expert' | 'hard' | 'medium';
 type UserAction = 'del' | 'remove-focus' | UserActionArrow | UserActionDiagonals | ValueRange;
@@ -49,11 +261,11 @@ type UserActionArrow = 'down' | 'left' | 'right' | 'up';
 type UserActionDiagonals = 'down-left' | 'down-right' | 'up-left' | 'up-right';
 
 export default defineComponent({
-  name: 'SudokuContainer',
   components: {
     SudokuCell,
     SudokuControls,
   },
+  name: 'SudokuContainer',
   setup() {
     const game = ref<null | SudokuGame>(null);
     const gameStatus = ref<'completed' | 'started' | 'uninitialised'>('uninitialised');
@@ -379,120 +591,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<template>
-  <v-row justify="center" no-gutters style="max-width: 400px; margin: auto">
-    <v-col v-if="game && (gameStatus === 'started' || gameStatus === 'completed')" cols="auto">
-      <div style="margin: 1px">
-        <v-row v-for="squareRow in 3" :key="squareRow" no-gutters>
-          <v-col v-for="squareCol in 3" :key="squareCol" cols="auto" no-gutters>
-            <div style="margin: 1px">
-              <v-row v-for="rowIndex in 3" :key="rowIndex" no-gutters>
-                <v-col v-for="colIndex in 3" :key="colIndex">
-                  <SudokuCell
-                    :ref="`cell-${getRowIndex(squareRow, rowIndex)}-${getColIndex(squareCol, colIndex)}`"
-                    :cell="game.cells[getRowIndex(squareRow, rowIndex)][getColIndex(squareCol, colIndex)]"
-                    :is-focused="getRowIndex(squareRow, rowIndex) === game.focusedRow
-                      && getColIndex(squareCol, colIndex) === game.focusedCol"
-                    :is-game-complete="gameStatus === 'completed'"
-                    :mistake="checkIfCellHasAMistake({
-                      squareRow, rowIndex, squareCol, colIndex,
-                    })"
-                    @focused="setFocusedRowAndCol"
-                    @key-pressed="triggerKeyPress"
-                  />
-                </v-col>
-              </v-row>
-            </div>
-          </v-col>
-        </v-row>
-      </div>
-
-      <SudokuControls
-        v-if="gameStatus === 'started'"
-        v-model:in-notes-mode="inNotesMode"
-        class="mt-12"
-        :disable-undo-button="!savedUndoStates.length"
-        @action="triggerUserAction"
-        @undo="undoState"
-      />
-    </v-col>
-
-    <v-col v-if="gameStatus === 'completed'" cols="12" />
-
-    <v-col v-if="gameStatus !== 'started'" cols="auto" class="mt-12">
-      <v-chip-group v-model="selectedDifficulty" color="primary" column mandatory>
-        <v-chip
-          v-for="difficulty in ['easy', 'medium', 'hard', 'expert']"
-          :key="difficulty"
-          variant="outlined"
-          :value="difficulty"
-          v-text="difficulty"
-        />
-      </v-chip-group>
-
-      <v-btn block class="mt-4" color="primary darken-3" size="small" @click="initialiseGame(selectedDifficulty)">
-        Start
-      </v-btn>
-    </v-col>
-
-    <v-col v-if="gameStatus === 'started'" class="mt-6" cols="8">
-      <v-btn block color="secondary" variant="outlined" @click="checkForMistakes">
-        Check for mistakes
-      </v-btn>
-    </v-col>
-
-    <v-col v-if="gameStatus === 'started'" class="mt-6" cols="8">
-      <v-menu
-        v-model="showingMenu"
-        bottom
-        :close-on-content-click="false"
-        offset-y
-        @input="resetSaveInput"
-      >
-        <template #activator="{ props }">
-          <v-btn block color="secondary" variant="outlined" v-bind="props">
-            Save states
-          </v-btn>
-        </template>
-
-        <v-card color="pink-lighten-5" min-width="150px">
-          <div v-if="!showNewSaveInput" class="text-left pa-4" :class="savedStates.length ? 'pb-0' : ''">
-            <button class="pb-3" @click="showNewSaveInput = true">
-              <a class="text-body-2">
-                Save current state
-              </a>
-            </button>
-          </div>
-          <v-form v-else class="pa-2 pl-4 pb-4" @submit.prevent="saveState">
-            <v-text-field
-              v-model="newSaveStateLabel"
-              autofocus
-              hide-details
-              label="Save state as"
-              @blur="saveState"
-            />
-          </v-form>
-
-          <v-list v-if="savedStates.length" color="primary" density="compact">
-            <v-list-item v-for="(savedState, index) in savedStates" :key="index" @click="restoreState(savedState.cells)">
-              {{ savedState.label }}
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
-    </v-col>
-
-    <v-fade-transition>
-      <v-col v-if="gameStatus === 'started' && savedRedoStates.length" class="mt-6" cols="8">
-        <v-btn block color="secondary" variant="outlined" @click="redoState">
-          Redo
-        </v-btn>
-      </v-col>
-    </v-fade-transition>
-
-    <v-snackbar v-model="showingSnackbar" class="mb-8" :color="snackbarColour" location="bottom">
-      {{ snackbarText }}
-    </v-snackbar>
-  </v-row>
-</template>

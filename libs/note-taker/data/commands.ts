@@ -1,9 +1,28 @@
 import fuzzy from 'fuzzy';
 import _, { orderBy } from 'lodash';
-import { checkIfStringsMatch, moveItemDown, moveItemUp, normaliseStringForComparison } from 'utils';
-import { array, boolean, literal, number, object, string, union } from 'zod';
+import {
+  checkIfStringsMatch,
+  moveItemDown,
+  moveItemUp,
+  normaliseStringForComparison,
+} from 'utils';
+import {
+  array,
+  boolean,
+  literal,
+  number,
+  object,
+  string,
+  union,
+} from 'zod';
 
-import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
+import type {
+  Context,
+  ListItem,
+  Page,
+  Section,
+  StorableNotes,
+} from './NoteTaker.types';
 
 const noteTakerZodSchema = object({
   allSections: array(object({
@@ -11,7 +30,6 @@ const noteTakerZodSchema = object({
     pages: array(object({
       activeContextTitle: string().optional(),
       contexts: array(object({
-        wide: boolean().optional(),
         focusedItemTitle: string().optional(),
         items: array(object({
           done: boolean().optional(),
@@ -20,6 +38,7 @@ const noteTakerZodSchema = object({
         })),
         title: string(),
         type: union([literal('todo'), literal('ordered-list'), literal('unordered-list')]),
+        wide: boolean().optional(),
       })),
       title: string(),
     })),

@@ -1,30 +1,30 @@
 export interface Context {
-  focusedItemTitle?: string
-  items: ListItem[]
-  title: string
-  type: 'ordered-list' | 'todo' | 'unordered-list'
-  wide?: boolean
+  focusedItemTitle?: string;
+  items: ListItem[];
+  title: string;
+  type: 'ordered-list' | 'todo' | 'unordered-list';
+  wide?: boolean;
 }
 
 export interface ListItem {
-  done?: boolean
+  done?: boolean;
   snoozeTill?: number;
-  title: string
+  title: string;
 }
 
 export interface Page {
-  activeContextTitle?: string
-  contexts: Context[]
-  title: string
+  activeContextTitle?: string;
+  contexts: Context[];
+  title: string;
 }
 
 export interface Section {
-  activePageTitle?: string
-  pages: Page[]
-  title: string
+  activePageTitle?: string;
+  pages: Page[];
+  title: string;
 }
 
 export interface StorableNotes {
-  allSections: Section[]
-  selectedSectionTitle?: string
+  allSections: Section[];
+  selectedSectionTitle?: string;
 }

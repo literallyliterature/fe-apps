@@ -1,8 +1,18 @@
 import { defineStore } from 'pinia';
-import { checkIfStringsMatch, constArrayIncludes, constObjectKeys } from 'utils';
+import {
+  checkIfStringsMatch,
+  constArrayIncludes,
+  constObjectKeys,
+} from 'utils';
 import { computed, ref } from 'vue';
 
-import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
+import type {
+  Context,
+  ListItem,
+  Page,
+  Section,
+  StorableNotes,
+} from './NoteTaker.types';
 import type { SearchItem } from './search-results';
 
 import {
@@ -29,6 +39,7 @@ import {
   toggleListItem,
   toggleWideContext,
 } from './commands';
+import { parseDatetimeFromText } from './parse-datetime-from-text';
 import {
   contextSpecificCodeTitles,
   extractCodeAndRestFromInputText,
@@ -37,7 +48,6 @@ import {
   pageSpecificCodeTitles,
   sectionSpecificCodeTitles,
 } from './search-results';
-import { parseDatetimeFromText } from './parse-datetime-from-text';
 
 const LOCAL_STORAGE_KEY = 'notes_json';
 
@@ -64,10 +74,10 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
   });
 
   const notFocusedOnTab = ref(false);
-  window.addEventListener('focus', () => notFocusedOnTab.value = false)
+  window.addEventListener('focus', () => notFocusedOnTab.value = false);
   window.addEventListener('blur', () => notFocusedOnTab.value = true);
 
-  timedSnoozeChecks()
+  timedSnoozeChecks();
 
   function timedSnoozeChecks() {
     storableNotes.value.allSections.forEach(({ pages }) => {
@@ -78,12 +88,12 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
 
             const currentTime = Date.now();
             if (currentTime < item.snoozeTill) item.snoozeTill = undefined;
-          })
-        })
-      })
-    })
+          });
+        });
+      });
+    });
 
-    setTimeout(timedSnoozeChecks, 10000)
+    setTimeout(timedSnoozeChecks, 10000);
   }
 
   function mergeNotesFromQuery(notesJsonFromQuery: string | undefined) {
@@ -101,11 +111,13 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     if (!constArrayIncludes(itemSpecificCodes, code)) return [];
 
     if (code === 'snooze') {
-      const datetime: number | null = parseDatetimeFromText(rest);
-      if (!datetime) return [{
-        action: () => {},
-        title: `Snooze "${item.title}" - Enter valid date/time`
-      }];
+      const datetime: null | number = parseDatetimeFromText(rest);
+      if (!datetime) {
+        return [{
+          action: () => {},
+          title: `Snooze "${item.title}" - Enter valid date/time`,
+        }];
+      }
 
       const d = new Date(datetime);
       const now = new Date();
@@ -116,13 +128,13 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       let displayed: string = '';
 
       if (datetime < tomorrow.getTime()) displayed = `${d.getHours()}:${d.getMinutes()}`;
-      else if (d.getHours() === 0) displayed = `${d.getDate()}/${d.getMonth() + 1}`
-      else displayed = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes()}`
+      else if (d.getHours() === 0) displayed = `${d.getDate()}/${d.getMonth() + 1}`;
+      else displayed = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes()}`;
 
       return [{
         action: () => item.snoozeTill = datetime,
         title: `Snooze "${item.title}" - till ${displayed}`,
-      }]
+      }];
     }
 
     return [];

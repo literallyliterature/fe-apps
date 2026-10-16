@@ -1,8 +1,23 @@
 import { random } from 'lodash';
-import { beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
+import {
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+} from 'vitest';
 
 import { getCommonSubjectTests } from './test-utils';
-import { assertIsUnreachable, assertNotNil, checkIfStringsMatch, constArrayIncludes, constObjectKeys, moveItemDown, moveItemUp, normaliseStringForComparison } from './utils';
+import {
+  assertIsUnreachable,
+  assertNotNil,
+  checkIfStringsMatch,
+  constArrayIncludes,
+  constObjectKeys,
+  moveItemDown,
+  moveItemUp,
+  normaliseStringForComparison,
+} from './utils';
 
 describe('assertNotNil', () => {
   it('throws an error if value is undefined or null', () => {

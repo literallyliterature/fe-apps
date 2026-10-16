@@ -1,9 +1,82 @@
+<template>
+  <v-row
+    class="align-center align-content-center justify-space-around"
+    density="compact"
+  >
+    <v-col
+      cols="auto"
+      style="max-width: 50px"
+    >
+      <v-row
+        class="justify-center"
+        density="compact"
+      >
+        <v-col>
+          <v-btn
+            :color="inNotesMode ? 'accent' : 'primary'"
+            icon
+            @click="$emit('update:in-notes-mode', !inNotesMode)"
+          >
+            <v-icon>fas fa-pencil-alt</v-icon>
+          </v-btn>
+        </v-col>
+
+        <v-col>
+          <v-btn
+            icon
+            color="primary"
+            @click="emitAction('del')"
+          >
+            <v-icon>fas fa-trash-alt</v-icon>
+          </v-btn>
+        </v-col>
+
+        <v-col>
+          <v-btn
+            :disabled="disableUndoButton"
+            icon
+            color="primary"
+            @click="$emit('undo')"
+          >
+            <v-icon>fas fa-undo</v-icon>
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-col>
+
+    <v-col
+      cols="auto"
+      style="max-width: 140px"
+    >
+      <v-row
+        class="justify-center"
+        density="compact"
+      >
+        <v-col
+          v-for="(numItem, index) in numItems"
+          :key="index"
+          cols="4"
+        >
+          <v-btn
+            icon
+            variant="outlined"
+            color="primary"
+            @click="emitAction(numItem.actionStr)"
+          >
+            <v-icon>{{ numItem.icon }}</v-icon>
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-col>
+  </v-row>
+</template>
+
 <script lang="ts">
 import { defineComponent } from 'vue';
 
 interface IconAndAction {
-  actionStr: string
-  icon: string
+  actionStr: string;
+  icon: string;
 }
 
 export default defineComponent({
@@ -42,52 +115,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<template>
-  <v-row align="center" align-content="center" dense justify="space-around">
-    <v-col cols="auto" style="max-width: 50px">
-      <v-row justify="center" dense>
-        <v-col>
-          <v-btn
-            :color="inNotesMode ? 'accent' : 'primary'"
-            icon
-            @click="$emit('update:in-notes-mode', !inNotesMode)"
-          >
-            <v-icon>fas fa-pencil-alt</v-icon>
-          </v-btn>
-        </v-col>
-
-        <v-col>
-          <v-btn icon color="primary" @click="emitAction('del')">
-            <v-icon>fas fa-trash-alt</v-icon>
-          </v-btn>
-        </v-col>
-
-        <v-col>
-          <v-btn
-            :disabled="disableUndoButton"
-            icon
-            color="primary"
-            @click="$emit('undo')"
-          >
-            <v-icon>fas fa-undo</v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-col>
-
-    <v-col cols="auto" style="max-width: 140px">
-      <v-row dense justify="center">
-        <v-col
-          v-for="(numItem, index) in numItems"
-          :key="index"
-          cols="4"
-        >
-          <v-btn icon variant="outlined" color="primary" @click="emitAction(numItem.actionStr)">
-            <v-icon>{{ numItem.icon }}</v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
-</template>

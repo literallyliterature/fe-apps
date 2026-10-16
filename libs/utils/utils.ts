@@ -1,4 +1,8 @@
-import { isEqual, isNil, sortBy } from 'lodash';
+import {
+  isEqual,
+  isNil,
+  sortBy,
+} from 'lodash';
 
 export function assertIsUnreachable(_unreachable: never) {
 }
