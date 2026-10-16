@@ -6,7 +6,7 @@ import {
   moveItemUp,
   normaliseStringForComparison,
 } from 'utils';
-import {
+import z, {
   array,
   boolean,
   literal,
@@ -23,7 +23,7 @@ import type {
   Section,
   StorableNotes,
 } from './NoteTaker.types';
-import { parseDatetimeFromText } from './parse-datetime-from-text';
+import { daysForRegular, parseDatetimeFromText } from './parse-datetime-from-text';
 
 const noteTakerZodSchema = object({
   allSections: array(object({
@@ -34,6 +34,10 @@ const noteTakerZodSchema = object({
         focusedItemTitle: string().optional(),
         items: array(object({
           done: boolean().optional(),
+          regular: object({
+            day: z.enum(daysForRegular),
+            time: string(),
+          }).optional(),
           snoozeTill: number().optional(),
           title: string(),
         })),
@@ -265,6 +269,16 @@ export function moveItemInContext(context: Context, itemTitle: string, upOrDown:
     ...moveFn(unfinishedItems, unfinishedItems.findIndex(item => checkIfStringsMatch(item.title, itemTitle))),
     ...moveFn(doneItems, doneItems.findIndex(item => checkIfStringsMatch(item.title, itemTitle))),
   ];
+}
+
+export function makeItemNotRegular(item: ListItem) {
+  item.regular = undefined;
+  makeItemNotSnoozed(item);
+}
+
+export function makeItemNotSnoozed(item: ListItem) {
+  item.snoozeTill = undefined;
+  item.done = false;
 }
 
 export function removeDoneItemsFromContext(context: Context): void {

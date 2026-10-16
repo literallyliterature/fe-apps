@@ -1,4 +1,6 @@
 const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+export const daysForRegular = [...days, 'daily'] as const;
+
 const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'] as const;
 
 export function parseDatetimeFromText(text: string): null | number {

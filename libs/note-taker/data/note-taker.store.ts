@@ -30,6 +30,8 @@ import {
   findOrCreateSection,
   focusItemInContext,
   getFuzzyMatches,
+  makeItemNotRegular,
+  makeItemNotSnoozed,
   mergeStorableNotes,
   removeDoneItemsFromContext,
   removeDoneItemsFromPage,
@@ -204,6 +206,16 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => toggleListItem(context, item.title),
         title: `${baseTitle}: ${item.title}`,
       }));
+    } else if (code === 'unregular') {
+      return matchingItems.filter(item => item.regular).map(item => ({
+        action: () => makeItemNotRegular(item),
+        title: `${baseTitle}: ${item.title}`,
+      }))
+    } else if (code === 'unsnooze') {
+      return matchingItems.filter(item => item.snoozeTill).map(item => ({
+        action: () => makeItemNotSnoozed(item),
+        title: `${baseTitle}: ${item.title}`
+      }))
     }
 
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {

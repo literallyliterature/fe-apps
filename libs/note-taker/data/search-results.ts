@@ -12,8 +12,8 @@ export const contextSpecificCodeTitles = {
   'rdc': 'Remove done items from context',
   'sort': 'Sort items in context',
   'undo': 'Undo item',
-  // 'unregular': 'Remove regular properties from item',
-  // 'unsnooze': 'Unsnooze item',
+  'unregular': 'Remove regular',
+  'unsnooze': 'Unsnooze item',
   'wide': 'Toggle wide context',
 };
 
