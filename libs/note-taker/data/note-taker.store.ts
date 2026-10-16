@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import {
+  assertIsUnreachable,
   checkIfStringsMatch,
   constArrayIncludes,
   constObjectKeys,
@@ -39,7 +40,7 @@ import {
   toggleListItem,
   toggleWideContext,
 } from './commands';
-import { parseDatetimeFromText } from './parse-datetime-from-text';
+import { convertHoursAndMinutesToWrittenTime, getMatchedDay, getMatchedHoursAndMinutes, getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
 import {
   contextSpecificCodeTitles,
   extractCodeAndRestFromInputText,
@@ -127,14 +128,37 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
 
       let displayed: string = '';
 
-      if (datetime < tomorrow.getTime()) displayed = `${d.getHours()}:${d.getMinutes()}`;
+      if (datetime < tomorrow.getTime()) displayed = `${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
       else if (d.getHours() === 0) displayed = `${d.getDate()}/${d.getMonth() + 1}`;
-      else displayed = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes()}`;
+      else displayed = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
 
       return [{
         action: () => item.snoozeTill = datetime,
         title: `Snooze "${item.title}" - till ${displayed}`,
       }];
+    } else if (code === 'regular') {
+      const matchedDay =  getMatchedDay(rest);
+      if (!matchedDay || matchedDay === 'tomorrow') {
+        return [{
+          action: () => {},
+          title: `Make "${item.title}" regular - Enter valid day/daily (and optionally time)`,
+        }];
+      }
+
+      const matchedTime = getMatchedHoursAndMinutes(rest) ?? { hours: 0, minutes: 0 };
+      const { hours, minutes } = matchedTime;
+
+      return [{
+        action: () => {
+          item.regular = {
+            day: matchedDay,
+            time: convertHoursAndMinutesToWrittenTime({ hours, minutes })
+          }
+        },
+        title: `Make "${item.title}" regular - ${matchedDay} at ${hours}:${getMinutesWith2Digits(minutes)}`
+      }]
+    } else {
+      assertIsUnreachable(code);
     }
 
     return [];
