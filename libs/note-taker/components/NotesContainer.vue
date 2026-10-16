@@ -121,7 +121,7 @@
           style="max-width: 1500px"
         >
           <div
-            v-if="focusedItem"
+            v-if="focusedItem && !focusedItem.done"
             class="text-headline-large font-weight-bold text-pink-lighten-1"
             style="position: absolute; top: 125px"
           >
