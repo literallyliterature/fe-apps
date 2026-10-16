@@ -1,8 +1,7 @@
 import fuzzy from 'fuzzy';
 import _, { orderBy } from 'lodash';
 import { checkIfStringsMatch, moveItemDown, moveItemUp, normaliseStringForComparison } from 'utils';
-import { array, boolean, literal, object, string, union } from 'zod';
-import type {Infer} from 'zod'
+import { array, boolean, literal, number, object, string, union } from 'zod';
 
 import type { Context, ListItem, Page, Section, StorableNotes } from './NoteTaker.types';
 
@@ -16,6 +15,7 @@ const noteTakerZodSchema = object({
         focusedItemTitle: string().optional(),
         items: array(object({
           done: boolean().optional(),
+          snoozeTill: number().optional(),
           title: string(),
         })),
         title: string(),

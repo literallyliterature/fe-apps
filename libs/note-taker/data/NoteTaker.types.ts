@@ -8,6 +8,7 @@ export interface Context {
 
 export interface ListItem {
   done?: boolean
+  snoozeTill?: number;
   title: string
 }
 

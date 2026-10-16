@@ -304,32 +304,36 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
               </div>
 
               <div v-if="context.type === 'todo'">
-                <EditAndDeleteButtons
+                <template
                   v-for="(item, itemIndex) in context.items"
                   :key="itemIndex"
-                  :default-opacity="item.done ? '0.5' : undefined"
-                  no-click-listener
-                  @edit="editTitle(item, context.items)"
-                  @delete="deleteContextItem(item.title, context)"
                 >
-                  <v-checkbox
-                    v-model="item.done"
-                    class="my-n1"
-                    density="comfortable"
-                    hide-details
-                    :label="item.title"
-                    @change="sortItemsInContextByCompletion(context)"
+                  <EditAndDeleteButtons
+                    v-if="!item.snoozeTill"
+                    :default-opacity="item.done ? '0.5' : undefined"
+                    no-click-listener
+                    @edit="editTitle(item, context.items)"
+                    @delete="deleteContextItem(item.title, context)"
                   >
-                    <template #label="{ label }">
-                      <div
-                        :class="{ 'font-weight-bold': item === grid.focusedItem }"
-                        class="my-2 text-body-2"
-                      >
-                        {{ label }}
-                      </div>
-                    </template>
-                  </v-checkbox>
-                </EditAndDeleteButtons>
+                    <v-checkbox
+                      v-model="item.done"
+                      class="my-n1"
+                      density="comfortable"
+                      hide-details
+                      :label="item.title"
+                      @change="sortItemsInContextByCompletion(context)"
+                    >
+                      <template #label="{ label }">
+                        <div
+                          :class="{ 'font-weight-bold': item === grid.focusedItem }"
+                          class="my-2 text-body-2"
+                        >
+                          {{ label }}
+                        </div>
+                      </template>
+                    </v-checkbox>
+                  </EditAndDeleteButtons>
+                </template>
               </div>
 
               <component

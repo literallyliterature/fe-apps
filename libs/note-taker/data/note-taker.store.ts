@@ -33,9 +33,11 @@ import {
   contextSpecificCodeTitles,
   extractCodeAndRestFromInputText,
   generalCodeTitles,
+  itemSpecificCodeTitles,
   pageSpecificCodeTitles,
   sectionSpecificCodeTitles,
 } from './search-results';
+import { parseDatetimeFromText } from './parse-datetime-from-text';
 
 const LOCAL_STORAGE_KEY = 'notes_json';
 
@@ -61,9 +63,65 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     return focusItemInContext(selectedContext.value, selectedContext.value.focusedItemTitle);
   });
 
+  timedSnoozeCheck()
+
+  function timedSnoozeCheck() {
+    storableNotes.value.allSections.forEach(({ pages }) => {
+      pages.forEach(({ contexts }) => {
+        contexts.forEach(({ items }) => {
+          items.forEach((item) => {
+            if (!item.snoozeTill) return;
+
+            const currentTime = Date.now();
+            if (currentTime < item.snoozeTill) item.snoozeTill = undefined;
+          })
+        })
+      })
+    })
+
+    setTimeout(timedSnoozeCheck, 10000)
+  }
+
   function mergeNotesFromQuery(notesJsonFromQuery: string | undefined) {
     if (!notesJsonFromQuery) return;
     storableNotes.value = mergeStorableNotes(storableNotes.value, notesJsonFromQuery ?? '');
+  }
+
+  function getMatchedItemSearchItem(inputText: string): SearchItem[] {
+    const item = focusedItem.value;
+    if (!item) return [];
+
+    const { code, rest } = extractCodeAndRestFromInputText(inputText);
+
+    const itemSpecificCodes = constObjectKeys(itemSpecificCodeTitles);
+    if (!constArrayIncludes(itemSpecificCodes, code)) return [];
+
+    if (code === 'snooze') {
+      const datetime: number | null = parseDatetimeFromText(rest);
+      if (!datetime) return [{
+        action: () => {},
+        title: `Snooze "${item.title}" - Enter valid date/time`
+      }];
+
+      const d = new Date(datetime);
+      const now = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(now.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      let displayed: string = '';
+
+      if (datetime < tomorrow.getTime()) displayed = `${d.getHours()}:${d.getMinutes()}`;
+      else if (d.getHours() === 0) displayed = `${d.getDate()}/${d.getMonth() + 1}`
+      else displayed = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes()}`
+
+      return [{
+        action: () => item.snoozeTill = datetime,
+        title: `Snooze "${item.title}" - till ${displayed}`,
+      }]
+    }
+
+    return [];
   }
 
   function getMatchedContextSearchItem(inputText: string): SearchItem[] {
@@ -375,6 +433,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
 
   function getSearchItems(inputText: string): SearchItem[] {
     const matchedSearchItems = [
+      ...getMatchedItemSearchItem(inputText),
       ...getMatchedContextSearchItem(inputText),
       ...getMatchedPageSearchItem(inputText),
       ...getMatchedSectionSearchItem(inputText),

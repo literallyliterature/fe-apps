@@ -15,6 +15,10 @@ export const contextSpecificCodeTitles = {
   'wide': 'Toggle wide context',
 };
 
+export const itemSpecificCodeTitles = {
+  'snooze': 'Snooze item',
+};
+
 export const pageSpecificCodeTitles = {
   c: 'Select context',
   delcontext: 'Delete context',
@@ -46,6 +50,7 @@ export const generalCodeTitles = {
 
 export const codeTitles = {
   ...contextSpecificCodeTitles,
+  ...itemSpecificCodeTitles,
   ...pageSpecificCodeTitles,
   ...sectionSpecificCodeTitles,
   ...generalCodeTitles,
