@@ -87,7 +87,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
             if (!item.snoozeTill) return;
 
             const currentTime = Date.now();
-            if (currentTime < item.snoozeTill) item.snoozeTill = undefined;
+            if (currentTime > item.snoozeTill) item.snoozeTill = undefined;
           });
         });
       });
