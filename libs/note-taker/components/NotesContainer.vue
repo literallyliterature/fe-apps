@@ -318,9 +318,9 @@ function deletePage(pageTitle: string, section: Section) {
   deletePageFromSection(pageTitle, section);
 }
 
-function deleteSection(sectionTitle: string, storableNotes: StorableNotes) {
+function deleteSection(sectionTitle: string, storableNotesToDelete: StorableNotes) {
   if (!window.confirm(`Delete section ${sectionTitle}?`)) return;
-  deleteSectionFromStorableNotes(sectionTitle, storableNotes);
+  deleteSectionFromStorableNotes(sectionTitle, storableNotesToDelete);
 }
 
 function selectContext(context: Context) {

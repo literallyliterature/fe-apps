@@ -24,7 +24,7 @@
             icon
             size="x-small"
             variant="text"
-            @click="$emit('delete-items')"
+            @click="$emit('deleteItems')"
           >
             <v-icon size="small">
               fa-solid fa-list-check
@@ -69,5 +69,5 @@ const {
   noClickListener?: boolean;
   showDeleteItems?: boolean;
 }>();
-defineEmits(['click', 'edit', 'delete', 'delete-items']);
+defineEmits(['click', 'edit', 'delete', 'deleteItems']);
 </script>

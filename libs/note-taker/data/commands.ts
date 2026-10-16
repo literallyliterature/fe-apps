@@ -133,7 +133,7 @@ export function deleteSectionFromStorableNotes(sectionTitle: string, storableNot
 
 export function editTitle<T extends { title: string }>(item: T, otherItems: T[]) {
   const newTitle = window.prompt('New title', item.title) || '';
-  const isValid = newTitle && otherItems.every(item => !checkIfStringsMatch(item.title, newTitle));
+  const isValid = newTitle && otherItems.every(otherItem => !checkIfStringsMatch(otherItem.title, newTitle));
   if (isValid) item.title = newTitle;
 }
 

@@ -24,7 +24,7 @@
               <template #default="{ isHovering }">
                 <v-btn
                   class="px-0 text-body-large font-weight-bold"
-                  dark
+                  theme="dark"
                   :disabled="(messedUp && !cell.isMine)"
                   variant="plain"
                   tile
@@ -84,17 +84,6 @@ function getRandomInt(max, min = 0) {
 }
 
 export default {
-
-  data: () => ({
-    blocks: [],
-    connHoverRow: -1,
-    connHoverCol: -1,
-    numberOfFlaggedCells: 0,
-    preventHoverEmit: false,
-    messedUp: false,
-    zeroClicks: true,
-  }),
-
   computed: {
     flattenedBlocks() {
       return this.blocks.reduce((acc, row) => [
@@ -115,12 +104,20 @@ export default {
       () => Array.from({ length: this.numberOfCols }, () => ({})),
     );
   },
-
+  data: () => ({
+    blocks: [],
+    connHoverCol: -1,
+    connHoverRow: -1,
+    messedUp: false,
+    numberOfFlaggedCells: 0,
+    preventHoverEmit: false,
+    zeroClicks: true,
+  }),
   methods: {
     getAdjacentCells(row, col) {
       const surroundingCells = [];
 
-    for (const [r, c] of [ // eslint-disable-line
+      for (const [r, c] of [ // eslint-disable-
         [row - 1, col],
         [row + 1, col],
         [row, col - 1],
@@ -151,7 +148,7 @@ export default {
     getSurroundingCells(row, col) {
       const surroundingCells = [];
 
-    for (const rd of [-1, 0, 1]) { // eslint-disable-line
+      for (const rd of [-1, 0, 1]) {
         for (const cd of [-1, 0, 1]) {
           const r = row + rd;
           const c = col + cd;
@@ -179,13 +176,11 @@ export default {
       return cell.surrounding === 0;
     },
     initialiseBlocks() {
-      const vm = this;
-
-      Array.from({ length: this.numberOfMines }).fill(null).forEach(() => vm.markRandomBlockAsMine());
+      Array.from({ length: this.numberOfMines }).fill(null).forEach(() => this.markRandomBlockAsMine());
 
       for (let row = 0; row < this.numberOfRows; row += 1) {
         for (let col = 0; col < this.numberOfCols; col += 1) {
-          vm.setNumberOfSurroundingMines(row, col);
+          this.setNumberOfSurroundingMines(row, col);
         }
       }
 
@@ -197,12 +192,11 @@ export default {
     leftClick(row, col, doNotEmit = false) {
       if (this.messedUp)
         return;
-      const vm = this;
 
       if (this.zeroClicks) {
         const surroundingBlocks = this.getSurroundingCells(row, col);
         surroundingBlocks.forEach(([r, c]) => {
-          vm.preventMinesOnSurroundingBlocks(r, c);
+          this.preventMinesOnSurroundingBlocks(r, c);
         });
         this.initialiseBlocks();
 
@@ -264,11 +258,10 @@ export default {
       }
     },
     preventMinesOnSurroundingBlocks(row, col) {
-      const vm = this;
       const surroundingBlocks = this.getSurroundingCells(row, col);
-      vm.blocks[row][col].preventMine = true;
+      this.blocks[row][col].preventMine = true;
       surroundingBlocks.forEach(([r, c]) => {
-        vm.blocks[r][c].preventMine = true;
+        this.blocks[r][c].preventMine = true;
       });
     },
     rightClick(row, col, doNotEmit = false) {
@@ -300,10 +293,9 @@ export default {
         row,
       });
 
-      const vm = this;
-      vm.preventHoverEmit = true;
+      this.preventHoverEmit = true;
       setTimeout(() => {
-        vm.preventHoverEmit = false;
+        this.preventHoverEmit = false;
       }, 100);
     },
     setBlocks(blocks) {
@@ -324,6 +316,7 @@ export default {
       this.blocks[row][col].surrounding = cellsWithMines.length;
     },
   },
+
   props: {
     mobileMode: {
       default: false,
@@ -346,11 +339,11 @@ export default {
   watch: {
     isGameWon(val) {
       if (val)
-        this.$emit('game-won');
+        this.$emit('gameWon');
     },
     messedUp(val) {
       if (val)
-        this.$emit('game-lost');
+        this.$emit('gameLost');
     },
   },
 };

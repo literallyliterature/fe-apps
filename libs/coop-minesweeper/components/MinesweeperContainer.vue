@@ -57,7 +57,6 @@
 
     <div style="overflow: auto; zoom: 67%">
       <Minesweeper
-        ref="mines"
         :key="minesKey"
         :mobile-mode="mobileMode"
         :number-of-cols="numberOfCols"
@@ -110,8 +109,8 @@ export default {
       minesKey: 0,
       mobileMode: false,
       numberOfCols: 30,
-      numberOfRows: 16,
       numberOfMines: 99,
+      numberOfRows: 16,
       showingRefreshInSnackbar: false,
       showingSnackbar: false,
       snackbarColour: 'error',
@@ -125,8 +124,7 @@ export default {
         range.moveToElementText(document.getElementById(containerid));
         range.select().createTextRange();
         document.execCommand('copy');
-      }
-      else if (window.getSelection) {
+      } else if (window.getSelection) {
         const range = document.createRange();
         range.selectNode(document.getElementById(containerid));
         window.getSelection().addRange(range);
@@ -145,8 +143,7 @@ export default {
         this.snackbarColour = 'success';
         this.snackbarText = 'Woot woot!';
         this.showingSnackbar = true;
-      }
-      else {
+      } else {
         this.snackbarColour = 'error darken-2';
         this.snackbarText = 'Oh no!';
         this.showingRefreshInSnackbar = false;

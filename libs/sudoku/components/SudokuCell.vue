@@ -34,8 +34,8 @@ import {
 } from 'vue';
 
 export default defineComponent({
-  name: 'SudokuCell',
   emits: ['focused', 'keyPressed'],
+  name: 'SudokuCell',
   props: {
     cell: {
       required: true,
@@ -59,6 +59,10 @@ export default defineComponent({
 
     const focus = () => cellDiv.value?.focus();
 
+    const readonly = computed(() => {
+      return props.isGameComplete || props.cell.original !== ' ';
+    });
+
     const backgroundColour = computed(() => {
       if (props.isGameComplete) {
         return props.cell.original === ' ' ? '#475247' : '#343d34';
@@ -73,10 +77,6 @@ export default defineComponent({
       return Object.keys(props.cell.notedNumbers)
         .filter(key => props.cell.notedNumbers[key])
         .join(' ');
-    });
-
-    const readonly = computed(() => {
-      return props.isGameComplete || props.cell.original !== ' ';
     });
 
     const handleFocus = () => {

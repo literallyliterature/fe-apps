@@ -44,7 +44,7 @@ export function parseDatetimeFromText(text: string): null | number {
 
   // Time portion matching
   const matchedTimeWithAmOrPm = text.match(/\b(\d+)(:[0-5]\d)? ?(am|pm)/);
-  const matchedRelativeTime = text.match(/\b(\d+) ?(m|min|minutes|h|hrs|hours)/);
+  const matchedRelativeTime = text.match(/\b(\d+) ?(m|h)/);
 
   if (matchedTimeWithAmOrPm) {
     const [_fullMatch, hour, minutes, amOrPm] = matchedTimeWithAmOrPm;
@@ -63,13 +63,5 @@ export function parseDatetimeFromText(text: string): null | number {
     else d.setHours(d.getHours() + Number(n));
   }
 
-  console.log(_matchedDate);
-
   return _matchedDate?.getTime() ?? null;
 }
-
-// if no matching rule is provided, it should return null
-// possible matching rules:
-/**
- * 25/10
- */

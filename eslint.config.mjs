@@ -11,6 +11,7 @@ export default antfu(
   {
     rules: {
       'antfu/if-newline': ['off'],
+      'no-alert': ['off'],
       'no-restricted-imports': ['error', {
         paths: [
           {
@@ -70,7 +71,7 @@ export default antfu(
       'vue/block-order': ['error', {
         order: ['template', 'script', 'style'],
       }],
-      'vue/component-api-style': ['error', ['script-setup', 'composition']],
+      'vue/component-api-style': ['error', ['script-setup', 'composition', 'options']],
       'vue/define-props-declaration': ['error'],
       'vue/html-closing-bracket-newline': [
         'error',
@@ -87,11 +88,6 @@ export default antfu(
         multiline: { max: 1 },
         singleline: { max: 1 },
       }],
-      'vue/no-bare-strings-in-template': ['error', {
-        attributes: {
-          '/.+/': ['label', 'placeholder', 'text', 'title', 'validation-field-name'],
-        },
-      }],
       'vue/no-ref-as-operand': ['error'],
       'vue/no-undef-components': ['error', {
         ignorePatterns: [
@@ -101,6 +97,7 @@ export default antfu(
         ],
       }],
       'vue/no-unused-properties': ['error'],
+      'vue/order-in-components': ['off'],
     },
   },
   {
