@@ -23,6 +23,7 @@ import type {
   Section,
   StorableNotes,
 } from './NoteTaker.types';
+import { parseDatetimeFromText } from './parse-datetime-from-text';
 
 const noteTakerZodSchema = object({
   allSections: array(object({
@@ -310,6 +311,20 @@ export function sortItemsInContextByCompletion(context: Context): void {
   context.items = _.sortBy(context.items, item => !!item.done);
 }
 
+function snoozeTillNext(item: ListItem): ListItem {
+  const { regular } = item;
+  if (!regular) return item;
+
+  item.done = undefined;
+  const { day, time } = regular;
+
+  const dayPortion = day === 'daily' ? 'tomorrow' : day;
+
+  const datetimeText = `${dayPortion} ${regular.time}`;
+  item.snoozeTill = parseDatetimeFromText(datetimeText) ?? undefined;
+  return item;
+}
+
 export function toggleListItem(context: Context, itemTitle: string): ListItem | undefined {
   if (context.type !== 'todo') return;
 
@@ -317,6 +332,8 @@ export function toggleListItem(context: Context, itemTitle: string): ListItem | 
   const item = context.items[itemIndex];
 
   if (!item) return undefined;
+
+  if (item.regular) return snoozeTillNext(item);
 
   item.done = !item.done;
   sortItemsInContextByCompletion(context);

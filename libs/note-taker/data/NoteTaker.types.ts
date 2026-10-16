@@ -8,6 +8,10 @@ export interface Context {
 
 export interface ListItem {
   done?: boolean;
+  regular?: {
+    day: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun' | 'daily';
+    time: string;
+  };
   snoozeTill?: number;
   title: string;
 }

@@ -4,6 +4,7 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from 'vitest';
 
 import type {
@@ -1046,6 +1047,30 @@ describe('toggleListItem', () => {
       { title: 'second item' },
       { done: true, title: 'first item' },
     ]);
+  });
+
+  it('snoozes regular items instead of marking them as done', () => {
+    vi.useFakeTimers();
+    const date = new Date('2026-10-16T11:23:45');
+    vi.setSystemTime(date);
+
+    const initialItem: ListItem = {
+      title: 'first item',
+      regular: {
+        day: 'mon',
+        time: '1:30pm'
+      }
+    };
+
+    context.items = [initialItem];
+    itemTitle = 'first item'
+
+    expectSubjectToEqual({
+      ...initialItem,
+      snoozeTill: new Date('2026-10-19T13:30:00').getTime(),
+    })
+
+    vi.useRealTimers();
   });
 });
 

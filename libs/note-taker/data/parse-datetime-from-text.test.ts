@@ -41,6 +41,7 @@ describe('parseDatetimeFromText', () => {
     ['3:30 pm', '2026-10-16T15:30:00'],
 
     // day
+    ['tomorrow', '2026-10-17T00:00:00'],
     ['mon', '2026-10-19T00:00:00'],
     ['Tuesday', '2026-10-20T00:00:00'],
 
@@ -49,6 +50,9 @@ describe('parseDatetimeFromText', () => {
     ['23 oct', '2026-10-23T00:00:00'],
     ['Nov 13th', '2026-11-13T00:00:00'],
     ['dec 15', '2026-12-15T00:00:00'],
+
+    // combined
+    ['mon 3pm', '2026-10-19T15:00:00'],
   ] satisfies Array<[string, string]>)('returns correct time for %s', ([inputText, result]) => {
     expect(parseDatetimeFromText(inputText)).toEqual(new Date(result).getTime());
   });

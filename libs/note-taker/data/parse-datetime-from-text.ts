@@ -12,7 +12,7 @@ export function parseDatetimeFromText(text: string): null | number {
   const matchedMonthDate = text.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w* ([1-3]?\d)/i);
   const matchedDateMonth = text.match(/([1-3]?\d) (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
   const matchedDateTh = text.match(/[1-3]?(?:1st|2nd|3rd|[4-9]th)/i);
-  const matchedDay = text.match(/(mon|tue|wed|thu|fri|sat|sun)/i);
+  const matchedDay = text.match(/(mon|tue|wed|thu|fri|sat|sun|tomorrow)/i);
 
   if (matchedMonthDate) {
     const monthIndex = months.findIndex(m => m === matchedMonthDate[1].toLowerCase());
@@ -31,7 +31,9 @@ export function parseDatetimeFromText(text: string): null | number {
     const d = getMatchedDate();
     // sun is 0
     const currentDay = d.getDay();
-    const matchedDayIndex = days.findIndex(v => v === matchedDay[1].toLowerCase());
+    const matchedDayIndex = matchedDay[1].toLowerCase() === 'tomorrow'
+      ? (currentDay + 1)
+      : days.findIndex(v => v === matchedDay[1].toLowerCase());
     const diff = (7 + matchedDayIndex - currentDay) % 7;
     const toIncrement = diff === 0 ? 7 : diff;
     d.setDate(d.getDate() + toIncrement);
