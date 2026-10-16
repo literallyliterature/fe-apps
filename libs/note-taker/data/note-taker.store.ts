@@ -63,7 +63,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     return focusItemInContext(selectedContext.value, selectedContext.value.focusedItemTitle);
   });
 
-  const notFocusedOnTab = ref(true);
+  const notFocusedOnTab = ref(false);
   window.addEventListener('focus', () => notFocusedOnTab.value = false)
   window.addEventListener('blur', () => notFocusedOnTab.value = true);
 
