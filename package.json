@@ -9,6 +9,8 @@
     "dev": "npm run dev --workspace apps/apps-host",
     "build": "npm run build-only --workspace apps/apps-host",
     "deploy": "npm run build && npx gh-pages -d apps/apps-host/dist",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test": "vitest",
     "type-check": "npm run type-check --if-present --workspaces"
   },
@@ -37,6 +39,7 @@
     "@vue/tsconfig": "^0.7.0",
     "eslint": "^10.5.0",
     "eslint-plugin-perfectionist": "^5.9.1",
+    "eslint-plugin-vuetify": "^2.7.3",
     "gh-pages": "^6.3.0",
     "sass": "^1.86.0",
     "sass-embedded": "^1.86.0",
