@@ -63,9 +63,13 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     return focusItemInContext(selectedContext.value, selectedContext.value.focusedItemTitle);
   });
 
-  timedSnoozeCheck()
+  const notFocusedOnTab = ref(true);
+  window.addEventListener('focus', () => notFocusedOnTab.value = false)
+  window.addEventListener('blur', () => notFocusedOnTab.value = true);
 
-  function timedSnoozeCheck() {
+  timedSnoozeChecks()
+
+  function timedSnoozeChecks() {
     storableNotes.value.allSections.forEach(({ pages }) => {
       pages.forEach(({ contexts }) => {
         contexts.forEach(({ items }) => {
@@ -79,7 +83,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       })
     })
 
-    setTimeout(timedSnoozeCheck, 10000)
+    setTimeout(timedSnoozeChecks, 10000)
   }
 
   function mergeNotesFromQuery(notesJsonFromQuery: string | undefined) {
@@ -449,6 +453,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     focusedItem,
     getSearchItems,
     mergeNotesFromQuery,
+    notFocusedOnTab,
     selectedContext,
     selectedPage,
     selectedSection,

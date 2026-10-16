@@ -28,7 +28,7 @@ import { useNoteTakerStore } from '../data/note-taker.store';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
-const { focusedItem, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
+const { focusedItem, notFocusedOnTab, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
 
 const route = useRoute();
 noteTakerStore.mergeNotesFromQuery(route.query.notes_json ? String(route.query.notes_json) : undefined);
@@ -286,7 +286,14 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
             <v-card
               :id="`context-card--${context.title}`"
               class="px-3 py-2"
-              :color="context === grid.selectedContext ? 'pink-lighten-1' : ''"
+              :color="context === grid.selectedContext
+                ? notFocusedOnTab
+                  ? 'pink-lighten-2'
+                  : 'pink-lighten-1'
+                : notFocusedOnTab
+                  ? 'grey-darken-1'
+                  : ''"
+              :style="notFocusedOnTab ? 'opacity: 0.9' : ''"
               variant="outlined"
             >
               <div
