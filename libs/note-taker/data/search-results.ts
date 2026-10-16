@@ -62,6 +62,7 @@ export const codeTitles = {
 export type SearchInputCode = keyof typeof codeTitles;
 export interface SearchItem {
   action: () => void;
+  props?: { disabled?: boolean };
   title: string;
 }
 export const allCodes = constObjectKeys(codeTitles);

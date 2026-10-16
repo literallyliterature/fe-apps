@@ -118,6 +118,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       if (!datetime) {
         return [{
           action: () => {},
+          props: { disabled: true },
           title: `Snooze "${item.title}" - Enter valid date/time`,
         }];
       }
@@ -143,6 +144,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       if (!matchedDay || matchedDay === 'tomorrow') {
         return [{
           action: () => {},
+          props: { disabled: true },
           title: `Make "${item.title}" regular - Enter valid day/daily (and optionally time)`,
         }];
       }

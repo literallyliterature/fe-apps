@@ -171,6 +171,7 @@
                     v-if="!item.snoozeTill"
                     :default-opacity="item.done ? '0.5' : undefined"
                     no-click-listener
+                    :tooltip-text="item.regular ? JSON.stringify(item.regular) : undefined"
                     @edit="editTitle(item, context.items)"
                     @delete="deleteContextItem(item.title, context)"
                   >

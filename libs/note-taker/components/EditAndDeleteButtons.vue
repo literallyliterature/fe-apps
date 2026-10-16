@@ -18,6 +18,19 @@
           style="transition: opacity 0.1s"
           :style="!isHovering ? 'opacity: 0' : ''"
         >
+          <v-tooltip
+            v-if="tooltipText"
+            location="top"
+            :text="tooltipText"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                icon="fa-solid fa-info-circle"
+                size="x-small" />
+            </template>
+          </v-tooltip>
+
           <v-btn
             v-if="showDeleteItems"
             class="ml-1"
@@ -68,6 +81,7 @@ const {
   defaultOpacity?: string;
   noClickListener?: boolean;
   showDeleteItems?: boolean;
+  tooltipText?: string;
 }>();
 defineEmits(['click', 'edit', 'delete', 'deleteItems']);
 </script>
