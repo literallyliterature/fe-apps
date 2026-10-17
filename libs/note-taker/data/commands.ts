@@ -18,52 +18,6 @@ import type {
 import { noteTakerZodSchema } from './note-taker-schema-and-types';
 import { getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
 
-export function changeFocusedItemInContext(context: Context, upOrDown: 'down' | 'up'): void {
-  const { focusedItemTitle } = context;
-  const indexOfFocusedItem = focusedItemTitle
-    ? context.items.findIndex(item => checkIfStringsMatch(item.title, focusedItemTitle))
-    : -1;
-  const lastItemIndex = context.items.length - 1;
-
-  if (!focusedItemTitle || context.items.length <= 1 || indexOfFocusedItem === -1) {
-    const index = upOrDown === 'up' ? lastItemIndex : 0;
-    context.focusedItemTitle = context.items[index]?.title;
-    return;
-  }
-
-  const newIndex: number = (() => {
-    if (indexOfFocusedItem === 0 && upOrDown === 'up') return lastItemIndex;
-    if (indexOfFocusedItem === lastItemIndex && upOrDown === 'down') return 0;
-    return indexOfFocusedItem + (upOrDown === 'up' ? -1 : 1);
-  })();
-
-  context.focusedItemTitle = context.items[newIndex]?.title;
-}
-
-export function changeSelectedPageInSection(section: Section, upOrDown: 'down' | 'up'): void {
-  if (section.pages.length <= 1) return;
-
-  const { activePageTitle, pages } = section;
-  const indexOfSelectedPage = activePageTitle
-    ? pages.findIndex(page => checkIfStringsMatch(page.title, activePageTitle))
-    : -1;
-  const lastPageIndex = section.pages.length - 1;
-
-  if (!activePageTitle || section.pages.length <= 1 || indexOfSelectedPage === -1) {
-    const index = upOrDown === 'up' ? lastPageIndex : 0;
-    section.activePageTitle = section.pages[index]?.title;
-    return;
-  }
-
-  const newIndex: number = (() => {
-    if (indexOfSelectedPage === 0 && upOrDown === 'up') return lastPageIndex;
-    if (indexOfSelectedPage === lastPageIndex && upOrDown === 'down') return 0;
-    return indexOfSelectedPage + (upOrDown === 'up' ? -1 : 1);
-  })();
-
-  section.activePageTitle = section.pages[newIndex]?.title;
-}
-
 export function convertToExportableJSON(storableNotes: StorableNotes): string {
   return JSON.stringify(storableNotes);
 }

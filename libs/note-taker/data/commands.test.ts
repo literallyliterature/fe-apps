@@ -16,7 +16,6 @@ import type {
 } from './note-taker-schema-and-types';
 
 import {
-  changeFocusedItemInContext,
   convertToExportableJSON,
   createStorableNotesFromJson,
   findContextInPage,
@@ -62,79 +61,6 @@ function getExampleStorableNotes(): StorableNotes {
 
   return storableNotes;
 }
-
-describe('changeFocusedItemInContext', () => {
-  let focusedItemTitle: string | undefined;
-  beforeEach(() => focusedItemTitle = undefined);
-
-  let upOrDown: 'down' | 'up';
-  beforeEach(() => upOrDown = 'up');
-
-  const { expectSubjectToEqual } = getCommonSubjectTests(() => {
-    const context: Context = {
-      focusedItemTitle,
-      items: [
-        { title: 'one' },
-        { title: 'two' },
-        { title: 'three' },
-      ],
-      title: 'context',
-      type: 'todo',
-    };
-    changeFocusedItemInContext(context, upOrDown);
-    return context.focusedItemTitle;
-  });
-
-  describe('up', () => {
-    beforeEach(() => upOrDown = 'up');
-
-    describe('when no item is currently focused', () => {
-      beforeEach(() => focusedItemTitle = undefined);
-      it('focuses the last item', () => {
-        expectSubjectToEqual('three');
-      });
-    });
-
-    describe('when the first item is currently focused', () => {
-      beforeEach(() => focusedItemTitle = 'one');
-      it('focuses the last item', () => {
-        expectSubjectToEqual('three');
-      });
-    });
-
-    describe('when an item other than the first one is currently focused', () => {
-      beforeEach(() => focusedItemTitle = 'three');
-      it('focuses the previous item', () => {
-        expectSubjectToEqual('two');
-      });
-    });
-  });
-
-  describe('down', () => {
-    beforeEach(() => upOrDown = 'down');
-
-    describe('when no item is currently focused', () => {
-      beforeEach(() => focusedItemTitle = undefined);
-      it('focuses the first item', () => {
-        expectSubjectToEqual('one');
-      });
-    });
-
-    describe('when the last item is currently focused', () => {
-      beforeEach(() => focusedItemTitle = 'three');
-      it('focuses the first item', () => {
-        expectSubjectToEqual('one');
-      });
-    });
-
-    describe('when an item other than the last one is currently focused', () => {
-      beforeEach(() => focusedItemTitle = 'two');
-      it('focuses the next item', () => {
-        expectSubjectToEqual('three');
-      });
-    });
-  });
-});
 
 describe('convertToExportableJSON', () => {
   it('returns string representation of given storableNotes', () => {

@@ -260,9 +260,8 @@ import type {
 } from '../data/note-taker-schema-and-types.ts';
 import type { SearchItem } from '../data/search-results.ts';
 
+import { changeFocusedItemInContext, changeSelectedContextInPage } from '../commands';
 import {
-  changeFocusedItemInContext,
-  changeSelectedPageInSection,
   convertToExportableJSON,
   deleteContextFromPage,
   deleteItemFromContext,
@@ -399,9 +398,9 @@ function actionBasedOnSpecialEventKey(evt: KeyboardEvent) {
     if (evt.altKey) focusedItemActionIfSearchEmpty('move-down');
     else focusedItemActionIfSearchEmpty('change-down');
   } else if (evt.key === 'ArrowLeft') {
-    if (evt.altKey && selectedSection.value) changeSelectedPageInSection(selectedSection.value, 'up');
+    if (!searchString.value && selectedPage.value) changeSelectedContextInPage(selectedPage.value, 'up');
   } else if (evt.key === 'ArrowRight') {
-    if (evt.altKey && selectedSection.value) changeSelectedPageInSection(selectedSection.value, 'down');
+    if (!searchString.value && selectedPage.value) changeSelectedContextInPage(selectedPage.value, 'down');
   } else if (evt.key === ' ' || evt.key === 'Enter') {
     focusedItemActionIfSearchEmpty('toggle');
   }
