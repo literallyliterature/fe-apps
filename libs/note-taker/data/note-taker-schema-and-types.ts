@@ -27,6 +27,7 @@ export const noteTakerZodSchema = object({
         type: union([literal('todo'), literal('ordered-list'), literal('unordered-list')]),
         wide: boolean().optional(),
       })),
+      prominentItemTitle: string().optional(),
       title: string(),
     })),
     title: string(),
