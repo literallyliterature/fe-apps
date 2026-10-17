@@ -112,7 +112,14 @@
       </div>
 
       <div
-        style="overflow-y: auto"
+        v-if="focusedItem && !focusedItem.done"
+        class="text-headline-large font-weight-bold text-pink-lighten-1 text-center"
+      >
+        {{ focusedItem.title }}
+      </div>
+
+      <div
+        style="overflow-y: auto; grid-row: span 3;"
         class="text-body-medium"
       >
         <div
@@ -120,14 +127,6 @@
           class="d-flex justify-space-around ga-4 flex-wrap mx-auto"
           style="max-width: 1500px"
         >
-          <div
-            v-if="focusedItem && !focusedItem.done"
-            class="text-headline-large font-weight-bold text-pink-lighten-1"
-            style="position: absolute; top: 125px"
-          >
-            {{ focusedItem.title }}
-          </div>
-
           <div
             v-for="(context, contextIndex) in grid.contexts"
             :key="contextIndex"
