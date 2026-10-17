@@ -23,7 +23,7 @@ import type {
   Section,
   StorableNotes,
 } from './NoteTaker.types';
-import { daysForRegular, parseDatetimeFromText } from './parse-datetime-from-text';
+import { daysForRegular, getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
 
 const noteTakerZodSchema = object({
   allSections: array(object({
@@ -34,10 +34,7 @@ const noteTakerZodSchema = object({
         focusedItemTitle: string().optional(),
         items: array(object({
           done: boolean().optional(),
-          regular: object({
-            day: z.enum(daysForRegular),
-            time: string(),
-          }).optional(),
+          regular: string().optional().catch(undefined),
           snoozeTill: number().optional(),
           title: string(),
         })),
@@ -325,17 +322,28 @@ export function sortItemsInContextByCompletion(context: Context): void {
   context.items = _.sortBy(context.items, item => !!item.done);
 }
 
+export function renderDatetimeNicely(datetime: number | null): string {
+  if (!datetime) return '';
+
+  const d = new Date(datetime);
+  if (!d) return '';
+
+  const now = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(now.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  if (datetime < tomorrow.getTime()) return `${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
+  else if (d.getHours() === 0) return `${d.getDate()}/${d.getMonth() + 1}`;
+  else return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
+}
+
 function snoozeTillNext(item: ListItem): ListItem {
   const { regular } = item;
   if (!regular) return item;
 
   item.done = undefined;
-  const { day, time } = regular;
-
-  const dayPortion = day === 'daily' ? 'tomorrow' : day;
-
-  const datetimeText = `${dayPortion} ${regular.time}`;
-  item.snoozeTill = parseDatetimeFromText(datetimeText) ?? undefined;
+  item.snoozeTill = parseDatetimeFromText(regular) ?? undefined;
   return item;
 }
 

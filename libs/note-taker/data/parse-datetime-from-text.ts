@@ -29,11 +29,11 @@ export function parseDatetimeFromText(text: string): null | number {
     if (Number.isNaN(n)) return null;
     const d = getMatchedDate();
     d.setDate(n);
-  } else if (matchedDay && matchedDay !== 'daily') {
+  } else if (matchedDay) {
     const d = getMatchedDate();
     // sun is 0
     const currentDay = d.getDay();
-    const matchedDayIndex = matchedDay === 'tomorrow'
+    const matchedDayIndex = (matchedDay === 'tomorrow' || matchedDay === 'daily')
       ? (currentDay + 1)
       : days.findIndex(v => v === matchedDay);
     const diff = (7 + matchedDayIndex - currentDay) % 7;

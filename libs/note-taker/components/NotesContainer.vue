@@ -170,7 +170,7 @@
                     v-if="!item.snoozeTill"
                     :default-opacity="item.done ? '0.5' : undefined"
                     no-click-listener
-                    :tooltip-text="item.regular ? JSON.stringify(item.regular) : undefined"
+                    :tooltip-text="item.regular ? renderDatetimeNicely(parseDatetimeFromText(item.regular)) : undefined"
                     @edit="editTitle(item, context.items)"
                     @delete="deleteContextItem(item.title, context)"
                   >
@@ -271,6 +271,7 @@ import {
   editTitle,
   moveItemInContext,
   removeDoneItemsFromContext,
+  renderDatetimeNicely,
   selectContextInPage,
   selectPageInSection,
   selectSectionInStorableNotes,
@@ -278,6 +279,7 @@ import {
   toggleListItem,
 } from '../data/commands';
 import { useNoteTakerStore } from '../data/note-taker.store';
+import { parseDatetimeFromText } from '../data/parse-datetime-from-text.ts';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
@@ -359,7 +361,7 @@ function storeToLocalStorage() {
 
 watch(grid, storeToLocalStorage, { deep: true });
 
-const input = useTemplateRef('userInput');
+const input = useTemplateRef<HTMLInputElement>('userInput');
 onMounted(() => {
   document.addEventListener('keydown', (event) => {
     if (event.isComposing) return;

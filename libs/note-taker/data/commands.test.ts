@@ -1056,10 +1056,7 @@ describe('toggleListItem', () => {
 
     const initialItem: ListItem = {
       title: 'first item',
-      regular: {
-        day: 'mon',
-        time: '1:30pm'
-      }
+      regular: 'mon 1:30pm'
     };
 
     context.items = [initialItem];

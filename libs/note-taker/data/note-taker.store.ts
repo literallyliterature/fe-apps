@@ -35,6 +35,7 @@ import {
   mergeStorableNotes,
   removeDoneItemsFromContext,
   removeDoneItemsFromPage,
+  renderDatetimeNicely,
   selectContextInPage,
   selectPageInSection,
   selectSectionInStorableNotes,
@@ -140,8 +141,9 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         title: `Snooze "${item.title}" - till ${displayed}`,
       }];
     } else if (code === 'regular') {
-      const matchedDay =  getMatchedDay(rest);
-      if (!matchedDay || matchedDay === 'tomorrow') {
+      const parsedDatetime = parseDatetimeFromText(rest);
+
+      if (!parsedDatetime) {
         return [{
           action: () => {},
           props: { disabled: true },
@@ -149,17 +151,11 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         }];
       }
 
-      const matchedTime = getMatchedHoursAndMinutes(rest) ?? { hours: 0, minutes: 0 };
-      const { hours, minutes } = matchedTime;
-
       return [{
         action: () => {
-          item.regular = {
-            day: matchedDay,
-            time: convertHoursAndMinutesToWrittenTime({ hours, minutes })
-          }
+          item.regular = rest;
         },
-        title: `Make "${item.title}" regular - ${matchedDay} at ${hours}:${getMinutesWith2Digits(minutes)}`
+        title: `Make "${item.title}" regular - ${renderDatetimeNicely(parsedDatetime)}`
       }]
     } else {
       assertIsUnreachable(code);
