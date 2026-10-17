@@ -16,6 +16,8 @@ import type {
 } from './note-taker-schema-and-types';
 import type { SearchItem } from './search-results';
 
+import { makeItemProminent } from '../commands/make-item-prominent';
+import { removeProminentItem } from '../commands/remove-prominent-item';
 import {
   convertToExportableJSON,
   createStorableNotesFromJson,
@@ -80,6 +82,20 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     return focusItemInContext(selectedContext.value, selectedContext.value.focusedItemTitle);
   });
 
+  const prominentItem = computed<ListItem | undefined>(() => {
+    if (!selectedPage.value) return undefined;
+    const { contexts, prominentItemTitle } = selectedPage.value;
+    if (!prominentItemTitle || !contexts.length) return undefined;
+    for (const c of contexts) {
+      for (const item of c.items) {
+        if (checkIfStringsMatch(item.title, prominentItemTitle)) {
+          if (!item.done && !item.snoozeTill) return item;
+        }
+      }
+    }
+    return undefined;
+  });
+
   const notFocusedOnTab = ref(false);
   window.addEventListener('focus', () => notFocusedOnTab.value = false);
   window.addEventListener('blur', () => notFocusedOnTab.value = true);
@@ -117,7 +133,15 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     const itemSpecificCodes = constObjectKeys(itemSpecificCodeTitles);
     if (!constArrayIncludes(itemSpecificCodes, code)) return [];
 
-    if (code === 'snooze') {
+    if (code === 'active') {
+      const page = selectedPage.value;
+      return page
+        ? [{
+            action: () => makeItemProminent(item.title, page),
+            title: `Mark as active: ${item.title}`,
+          }]
+        : [];
+    } else if (code === 'snooze') {
       const datetime: null | number = parseDatetimeFromText(rest);
       if (!datetime) {
         return [{
@@ -281,6 +305,11 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => editTitle(context, page.contexts),
         title: `${baseTitle}: ${context.title}`,
       }));
+    } else if (code === 'unactive') {
+      return [{
+        action: () => removeProminentItem(page),
+        title: baseTitle,
+      }];
     }
 
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {
@@ -503,6 +532,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     getSearchItems,
     mergeNotesFromQuery,
     notFocusedOnTab,
+    prominentItem,
     selectedContext,
     selectedPage,
     selectedSection,

@@ -112,10 +112,11 @@
       </div>
 
       <div
-        v-if="focusedItem && !focusedItem.done"
-        class="text-headline-large font-weight-bold text-pink-lighten-1 text-center"
+        v-if="prominentItem"
+        class="text-headline-large font-weight-bold text-pink-lighten-1 text-center mx-auto"
+        style="max-width: 1000px"
       >
-        {{ focusedItem.title }}
+        {{ prominentItem.title }}
       </div>
 
       <div
@@ -282,7 +283,7 @@ import { parseDatetimeFromText } from '../data/parse-datetime-from-text.ts';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
-const { focusedItem, notFocusedOnTab, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
+const { focusedItem, notFocusedOnTab, prominentItem, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
 
 const route = useRoute();
 noteTakerStore.mergeNotesFromQuery(route.query.notes_json ? String(route.query.notes_json) : undefined);
@@ -292,6 +293,7 @@ const grid = computed(() => {
     contexts: selectedPage.value?.contexts ?? [],
     focusedItem: focusedItem.value,
     pages: selectedSection.value?.pages ?? [],
+    prominentItem: prominentItem.value,
     sections: storableNotes.value.allSections,
     selectedContext: selectedContext.value,
     selectedPage: selectedPage.value,

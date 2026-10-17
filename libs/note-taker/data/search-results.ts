@@ -18,6 +18,7 @@ export const contextSpecificCodeTitles = {
 };
 
 export const itemSpecificCodeTitles = {
+  active: 'Show prominently as active item',
   regular: 'Make item regular',
   snooze: 'Snooze item',
 };
@@ -31,6 +32,7 @@ export const pageSpecificCodeTitles = {
   nctodo: 'New context - todo',
   ncul: 'New context - ul',
   rdp: 'Remove done items from page',
+  unactive: 'Remove active item',
 };
 
 export const sectionSpecificCodeTitles = {
