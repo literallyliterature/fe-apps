@@ -6,15 +6,6 @@ import {
   moveItemUp,
   normaliseStringForComparison,
 } from 'utils';
-import z, {
-  array,
-  boolean,
-  literal,
-  number,
-  object,
-  string,
-  union,
-} from 'zod';
 
 import type {
   Context,
@@ -23,31 +14,9 @@ import type {
   Section,
   StorableNotes,
 } from './NoteTaker.types';
-import { daysForRegular, getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
 
-const noteTakerZodSchema = object({
-  allSections: array(object({
-    activePageTitle: string().optional(),
-    pages: array(object({
-      activeContextTitle: string().optional(),
-      contexts: array(object({
-        focusedItemTitle: string().optional(),
-        items: array(object({
-          done: boolean().optional(),
-          regular: string().optional().catch(undefined),
-          snoozeTill: number().optional(),
-          title: string(),
-        })),
-        title: string(),
-        type: union([literal('todo'), literal('ordered-list'), literal('unordered-list')]),
-        wide: boolean().optional(),
-      })),
-      title: string(),
-    })),
-    title: string(),
-  })),
-  selectedSectionTitle: string().optional(),
-});
+import { noteTakerZodSchema } from './NoteTaker.types';
+import { getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
 
 export function changeFocusedItemInContext(context: Context, upOrDown: 'down' | 'up'): void {
   const { focusedItemTitle } = context;
@@ -191,6 +160,16 @@ export function getFuzzyMatches<T extends { title: string }>(items: T[], inputTe
   return orderBy(filterResults, ['score', 'string'], ['desc', 'asc']).map(obj => obj.original);
 }
 
+export function makeItemNotRegular(item: ListItem) {
+  item.regular = undefined;
+  makeItemNotSnoozed(item);
+}
+
+export function makeItemNotSnoozed(item: ListItem) {
+  item.snoozeTill = undefined;
+  item.done = false;
+}
+
 export function mergeContexts<C extends Context>(first: Context, second: C): C {
   if (first.type !== second.type) return second;
 
@@ -268,22 +247,28 @@ export function moveItemInContext(context: Context, itemTitle: string, upOrDown:
   ];
 }
 
-export function makeItemNotRegular(item: ListItem) {
-  item.regular = undefined;
-  makeItemNotSnoozed(item);
-}
-
-export function makeItemNotSnoozed(item: ListItem) {
-  item.snoozeTill = undefined;
-  item.done = false;
-}
-
 export function removeDoneItemsFromContext(context: Context): void {
   context.items = context.items.filter(item => !item.done);
 }
 
 export function removeDoneItemsFromPage(page: Page): void {
   page.contexts.forEach(removeDoneItemsFromContext);
+}
+
+export function renderDatetimeNicely(datetime: null | number): string {
+  if (!datetime) return '';
+
+  const d = new Date(datetime);
+  if (!d) return '';
+
+  const now = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(now.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  if (datetime < tomorrow.getTime()) return `${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
+  else if (d.getHours() === 0) return `${d.getDate()}/${d.getMonth() + 1}`;
+  else return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
 }
 
 export function selectContextInPage(page: Page, contextTitle?: string): Context | undefined {
@@ -322,31 +307,6 @@ export function sortItemsInContextByCompletion(context: Context): void {
   context.items = _.sortBy(context.items, item => !!item.done);
 }
 
-export function renderDatetimeNicely(datetime: number | null): string {
-  if (!datetime) return '';
-
-  const d = new Date(datetime);
-  if (!d) return '';
-
-  const now = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(now.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-
-  if (datetime < tomorrow.getTime()) return `${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
-  else if (d.getHours() === 0) return `${d.getDate()}/${d.getMonth() + 1}`;
-  else return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
-}
-
-function snoozeTillNext(item: ListItem): ListItem {
-  const { regular } = item;
-  if (!regular) return item;
-
-  item.done = undefined;
-  item.snoozeTill = parseDatetimeFromText(regular) ?? undefined;
-  return item;
-}
-
 export function toggleListItem(context: Context, itemTitle: string): ListItem | undefined {
   if (context.type !== 'todo') return;
 
@@ -369,4 +329,13 @@ export function toggleListItem(context: Context, itemTitle: string): ListItem | 
 
 export function toggleWideContext(context: Context): void {
   context.wide = !context.wide;
+}
+
+function snoozeTillNext(item: ListItem): ListItem {
+  const { regular } = item;
+  if (!regular) return item;
+
+  item.done = undefined;
+  item.snoozeTill = parseDatetimeFromText(regular) ?? undefined;
+  return item;
 }

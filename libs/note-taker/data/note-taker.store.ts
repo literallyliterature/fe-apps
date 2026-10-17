@@ -43,7 +43,10 @@ import {
   toggleListItem,
   toggleWideContext,
 } from './commands';
-import { convertHoursAndMinutesToWrittenTime, getMatchedDay, getMatchedHoursAndMinutes, getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
+import {
+  getMinutesWith2Digits,
+  parseDatetimeFromText,
+} from './parse-datetime-from-text';
 import {
   contextSpecificCodeTitles,
   extractCodeAndRestFromInputText,
@@ -155,8 +158,8 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => {
           item.regular = rest;
         },
-        title: `Make "${item.title}" regular - ${renderDatetimeNicely(parsedDatetime)}`
-      }]
+        title: `Make "${item.title}" regular - ${renderDatetimeNicely(parsedDatetime)}`,
+      }];
     } else {
       assertIsUnreachable(code);
     }
@@ -208,12 +211,12 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       return matchingItems.filter(item => item.regular).map(item => ({
         action: () => makeItemNotRegular(item),
         title: `${baseTitle}: ${item.title}`,
-      }))
+      }));
     } else if (code === 'unsnooze') {
       return matchingItems.filter(item => item.snoozeTill).map(item => ({
         action: () => makeItemNotSnoozed(item),
-        title: `${baseTitle}: ${item.title}`
-      }))
+        title: `${baseTitle}: ${item.title}`,
+      }));
     }
 
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {

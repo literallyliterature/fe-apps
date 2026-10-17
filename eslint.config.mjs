@@ -100,32 +100,4 @@ export default antfu(
       'vue/order-in-components': ['off'],
     },
   },
-  {
-    files: ['**/*.routes.ts', '**/*.stories.ts'],
-    rules: {
-      'perfectionist/sort-objects': [
-        'error',
-        {
-          customGroups: [
-            {
-              elementNamePattern: '^(?:path|name|component)$',
-              groupName: 'top',
-              selector: 'property',
-            },
-            {
-              elementNamePattern: '^(?:children|args)$',
-              groupName: 'bottom',
-              selector: 'property',
-            },
-          ],
-          groups: [
-            'top',
-            'unknown',
-            ['multiline-member', 'bottom'],
-          ],
-          type: 'natural',
-        },
-      ],
-    },
-  },
 );

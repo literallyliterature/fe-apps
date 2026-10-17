@@ -1055,17 +1055,17 @@ describe('toggleListItem', () => {
     vi.setSystemTime(date);
 
     const initialItem: ListItem = {
+      regular: 'mon 1:30pm',
       title: 'first item',
-      regular: 'mon 1:30pm'
     };
 
     context.items = [initialItem];
-    itemTitle = 'first item'
+    itemTitle = 'first item';
 
     expectSubjectToEqual({
       ...initialItem,
       snoozeTill: new Date('2026-10-19T13:30:00').getTime(),
-    })
+    });
 
     vi.useRealTimers();
   });

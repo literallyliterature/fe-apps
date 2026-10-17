@@ -64,13 +64,21 @@ export function parseDatetimeFromText(text: string): null | number {
 }
 
 const dayMatches = [...days, 'tomorrow', 'daily'] as const;
+export function convertHoursAndMinutesToWrittenTime({ hours, minutes }: { hours: number; minutes: number }): string {
+  const m = getMinutesWith2Digits(minutes);
+  if (hours === 0) return `12:${m}am`;
+  if (hours < 12) return `${hours}:${m}am`;
+  if (hours === 12) return `${hours}:${m}pm`;
+  return `${hours - 12}:${m}pm`;
+}
+
 export function getMatchedDay(text: string): (typeof dayMatches)[number] | undefined {
-  const lowercase = text.toLowerCase()
+  const lowercase = text.toLowerCase();
   const foundText = dayMatches.find(d => lowercase.includes(d));
   return foundText;
 }
 
-export function getMatchedHoursAndMinutes(text: string): { hours: number; minutes: number } | undefined {
+export function getMatchedHoursAndMinutes(text: string): undefined | { hours: number; minutes: number } {
   // Time portion matching
   const matchedTimeWithAmOrPm = text.match(/\b(\d+)(:[0-5]\d)? ?(am|pm)/);
 
@@ -92,12 +100,4 @@ export function getMatchedHoursAndMinutes(text: string): { hours: number; minute
 export function getMinutesWith2Digits(minutes: number) {
   const s = String(minutes);
   return s.length === 1 ? `0${s}` : s;
-}
-
-export function convertHoursAndMinutesToWrittenTime({ hours, minutes }: { hours: number, minutes: number }): string {
-  const m = getMinutesWith2Digits(minutes);
-  if (hours === 0) return `12:${m}am`;
-  if (hours < 12) return `${hours}:${m}am`
-  if (hours === 12) return `${hours}:${m}pm`
-  return `${hours - 12}:${m}pm`;
 }
