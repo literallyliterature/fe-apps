@@ -257,7 +257,7 @@ import type {
   Page,
   Section,
   StorableNotes,
-} from '../data/NoteTaker.types.ts';
+} from '../data/note-taker-schema-and-types.ts';
 import type { SearchItem } from '../data/search-results.ts';
 
 import {

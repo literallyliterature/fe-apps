@@ -13,7 +13,7 @@ import type {
   Page,
   Section,
   StorableNotes,
-} from './NoteTaker.types';
+} from './note-taker-schema-and-types';
 import type { SearchItem } from './search-results';
 
 import {

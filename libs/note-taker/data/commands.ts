@@ -13,9 +13,9 @@ import type {
   Page,
   Section,
   StorableNotes,
-} from './NoteTaker.types';
+} from './note-taker-schema-and-types';
 
-import { noteTakerZodSchema } from './NoteTaker.types';
+import { noteTakerZodSchema } from './note-taker-schema-and-types';
 import { getMinutesWith2Digits, parseDatetimeFromText } from './parse-datetime-from-text';
 
 export function changeFocusedItemInContext(context: Context, upOrDown: 'down' | 'up'): void {
