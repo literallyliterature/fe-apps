@@ -168,10 +168,14 @@
                   :key="itemIndex"
                 >
                   <EditAndDeleteButtons
-                    v-if="!item.snoozeTill"
+                    v-if="!item.snoozeTill || showSnoozedItems"
                     :default-opacity="item.done ? '0.5' : undefined"
                     no-click-listener
-                    :tooltip-text="item.regular ? renderDatetimeNicely(parseDatetimeFromText(item.regular)) : undefined"
+                    :tooltip-text="item.regular
+                      ? `Next occurrence: ${renderDatetimeNicely(parseDatetimeFromText(item.regular))}`
+                      : item.snoozeTill
+                        ? `Snoozed till: ${renderDatetimeNicely(item.snoozeTill)}`
+                        : undefined"
                     @edit="editTitle(item, context.items)"
                     @delete="deleteContextItem(item.title, context)"
                   >
@@ -283,7 +287,7 @@ import { parseDatetimeFromText } from '../data/parse-datetime-from-text.ts';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
-const { focusedItem, notFocusedOnTab, prominentItem, selectedContext, selectedPage, selectedSection, storableNotes } = storeToRefs(noteTakerStore);
+const { focusedItem, notFocusedOnTab, prominentItem, selectedContext, selectedPage, selectedSection, showSnoozedItems, storableNotes } = storeToRefs(noteTakerStore);
 
 const route = useRoute();
 noteTakerStore.mergeNotesFromQuery(route.query.notes_json ? String(route.query.notes_json) : undefined);

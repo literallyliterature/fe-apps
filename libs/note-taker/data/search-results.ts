@@ -51,6 +51,7 @@ export const generalCodeTitles = {
   import: 'Import JSON',
   ns: 'New section',
   s: 'Select section',
+  snoozed: 'Toggle visibility of snoozed items',
 };
 
 export const codeTitles = {

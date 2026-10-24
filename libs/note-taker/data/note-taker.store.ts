@@ -96,11 +96,17 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     return undefined;
   });
 
+  const showSnoozedItems = ref(false);
+
   const notFocusedOnTab = ref(false);
   window.addEventListener('focus', () => notFocusedOnTab.value = false);
   window.addEventListener('blur', () => notFocusedOnTab.value = true);
 
   timedSnoozeChecks();
+
+  function toggleSnoozedItems() {
+    showSnoozedItems.value = !showSnoozedItems.value;
+  }
 
   function timedSnoozeChecks() {
     storableNotes.value.allSections.forEach(({ pages }) => {
@@ -445,6 +451,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       help: trimmedRest ? undefined : baseTitle,
       import: trimmedRest ? undefined : baseTitle,
       ns: trimmedRest ? `${baseTitle}: ${trimmedRest}` : baseTitle,
+      snoozed: trimmedRest ? undefined : baseTitle,
     };
 
     const title = titleMappingsWithRest[code];
@@ -464,6 +471,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         findOrCreateSection(sectionTitle, storableNotes.value.allSections);
         selectSectionInStorableNotes(storableNotes.value, sectionTitle);
       },
+      snoozed: () => toggleSnoozedItems(),
     };
 
     return [{ action: actionMapping[code], title }];
@@ -536,6 +544,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     selectedContext,
     selectedPage,
     selectedSection,
+    showSnoozedItems,
     storableNotes,
   };
 });

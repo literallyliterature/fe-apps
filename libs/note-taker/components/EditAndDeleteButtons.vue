@@ -18,19 +18,6 @@
           style="transition: opacity 0.1s"
           :style="!isHovering ? 'opacity: 0' : ''"
         >
-          <v-tooltip
-            v-if="tooltipText"
-            location="top"
-            :text="tooltipText"
-          >
-            <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                icon="fa-solid fa-info-circle"
-                size="x-small" />
-            </template>
-          </v-tooltip>
-
           <v-btn
             v-if="showDeleteItems"
             class="ml-1"
@@ -66,6 +53,22 @@
               fa-solid fa-trash
             </v-icon>
           </v-btn>
+        </v-col>
+
+        <v-col cols="auto">
+          <v-tooltip
+            v-if="tooltipText"
+            location="top"
+            :text="tooltipText"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                class="ml-2"
+                icon="fa-solid fa-clock"
+                size="x-small" />
+            </template>
+          </v-tooltip>
         </v-col>
       </v-row>
     </template>
