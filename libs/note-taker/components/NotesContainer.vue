@@ -425,8 +425,8 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
   const context = selectedContext.value;
   if (!context) return;
 
-  if (action === 'change-up') return changeFocusedItemInContext(context, 'up');
-  if (action === 'change-down') return changeFocusedItemInContext(context, 'down');
+  if (action === 'change-up') return changeFocusedItemInContext(context, 'up', showSnoozedItems.value);
+  if (action === 'change-down') return changeFocusedItemInContext(context, 'down', showSnoozedItems.value);
 
   const item = focusedItem.value;
   if (!item) return;

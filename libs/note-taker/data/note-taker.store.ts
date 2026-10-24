@@ -173,7 +173,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       return [{
         action: () => {
           item.snoozeTill = datetime;
-          if (selectedContext.value) changeFocusedItemInContext(selectedContext.value, 'down');
+          if (selectedContext.value && !showSnoozedItems.value) changeFocusedItemInContext(selectedContext.value, 'down', false);
         },
         title: `Snooze "${item.title}" - till ${displayed}`,
       }];

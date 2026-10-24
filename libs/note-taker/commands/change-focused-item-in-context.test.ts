@@ -2,6 +2,7 @@ import { getCommonSubjectTests } from 'utils/test-utils';
 import {
   beforeEach,
   describe,
+  expect,
   it,
 } from 'vitest';
 
@@ -19,6 +20,9 @@ describe('changeFocusedItemInContext', () => {
   let focusedItemTitle: string | undefined;
   beforeEach(() => focusedItemTitle = 'two');
 
+  let showingSnoozedItems: boolean;
+  beforeEach(() => showingSnoozedItems = false);
+
   let upOrDown: 'down' | 'up';
   beforeEach(() => upOrDown = 'up');
 
@@ -29,7 +33,7 @@ describe('changeFocusedItemInContext', () => {
       title: 'example',
       type: 'todo',
     };
-    changeFocusedItemInContext(context, upOrDown);
+    changeFocusedItemInContext(context, upOrDown, showingSnoozedItems);
     return context.focusedItemTitle;
   });
 
@@ -62,5 +66,24 @@ describe('changeFocusedItemInContext', () => {
     focusedItemTitle = 'three';
     upOrDown = 'down';
     expectSubjectToEqual('one'); // wrap to first item
+  });
+
+  it('skips snoozed items when moving up or down, if they are currently not visible', () => {
+    const context: Context = {
+      focusedItemTitle: 'one',
+      items: [
+        { title: 'one' },
+        { snoozeTill: Date.now() + 10000, title: 'two' },
+        { done: true, title: 'three' },
+      ],
+      title: 'example',
+      type: 'todo',
+    };
+
+    changeFocusedItemInContext(context, 'down', false);
+    expect(context.focusedItemTitle).toBe('three');
+
+    changeFocusedItemInContext(context, 'up', true);
+    expect(context.focusedItemTitle).toBe('two');
   });
 });
