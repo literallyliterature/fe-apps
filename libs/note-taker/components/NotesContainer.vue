@@ -116,7 +116,25 @@
         class="text-headline-large font-weight-bold text-pink-lighten-1 text-center mx-auto"
         style="max-width: 1000px"
       >
-        {{ prominentItem.title }}
+        <v-hover>
+          <template #default="{ isHovering, props }">
+            <div
+              v-bind="props"
+              class="d-flex ga-2 align-center"
+            >
+              <div>
+                {{ prominentItem.title }}
+              </div>
+
+              <v-btn
+                color="pink-lighten-2"
+                icon="fa-solid fa-copy"
+                style="transition: opacity 0.25s"
+                :style="isHovering ? 'opacity: 0.8' : 'opacity: 0'"
+                @click="noteTakerStore.copyToClipboard(prominentItem.title)" />
+            </div>
+          </template>
+        </v-hover>
       </div>
 
       <div
