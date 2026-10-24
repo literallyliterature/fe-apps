@@ -261,7 +261,11 @@ export function sortItemsInContextByCompletion(context: Context): void {
   context.items = _.sortBy(context.items, item => !!item.done);
 }
 
-export function toggleListItem(context: Context, itemTitle: string): ListItem | undefined {
+export function toggleListItem(
+  context: Context,
+  itemTitle: string,
+  showingSnoozedItems: boolean,
+): ListItem | undefined {
   if (context.type !== 'todo') return;
 
   const itemIndex = context.items.findIndex(item => checkIfStringsMatch(item.title, itemTitle));
@@ -269,9 +273,11 @@ export function toggleListItem(context: Context, itemTitle: string): ListItem | 
 
   if (!item) return undefined;
 
+  if (!showingSnoozedItems && item.snoozeTill) return;
   if (item.regular) return snoozeTillNext(item);
 
   item.done = !item.done;
+
   sortItemsInContextByCompletion(context);
 
   // if the item is now done, and the new item at the same index is NOT done, then make it the focused item

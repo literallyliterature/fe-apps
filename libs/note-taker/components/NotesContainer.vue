@@ -433,7 +433,7 @@ function focusedItemActionIfSearchEmpty(action: 'change-down' | 'change-up' | 'm
 
   if (action === 'move-up') return moveItemInContext(context, item.title, 'up');
   if (action === 'move-down') return moveItemInContext(context, item.title, 'down');
-  if (action === 'toggle') return toggleListItem(context, item.title);
+  if (action === 'toggle') return toggleListItem(context, item.title, showSnoozedItems.value);
 }
 </script>
 

@@ -941,7 +941,10 @@ describe('toggleListItem', () => {
   let itemTitle: string;
   beforeEach(() => itemTitle = '');
 
-  const { expectSubjectToEqual } = getCommonSubjectTests(() => toggleListItem(context, itemTitle));
+  let showSnoozedItems: boolean;
+  beforeEach(() => showSnoozedItems = false);
+
+  const { expectSubjectToEqual } = getCommonSubjectTests(() => toggleListItem(context, itemTitle, showSnoozedItems));
 
   it('returns undefined if item is not found', () => {
     itemTitle = 'asdf';
@@ -994,6 +997,26 @@ describe('toggleListItem', () => {
     });
 
     vi.useRealTimers();
+  });
+
+  it('does nothing for snoozed items unless showSnoozedItems is true', () => {
+    const initialItem: ListItem = {
+      snoozeTill: Date.now() + 10000,
+      title: 'example item',
+    };
+
+    context.items = [initialItem];
+    itemTitle = initialItem.title;
+
+    showSnoozedItems = false;
+    expectSubjectToEqual(undefined);
+    expect(context.items).toEqual([initialItem]);
+
+    showSnoozedItems = true;
+    expectSubjectToEqual({
+      ...initialItem,
+      done: true,
+    });
   });
 });
 

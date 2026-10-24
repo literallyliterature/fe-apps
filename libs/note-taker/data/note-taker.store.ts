@@ -16,6 +16,7 @@ import type {
 } from './note-taker-schema-and-types';
 import type { SearchItem } from './search-results';
 
+import { changeFocusedItemInContext } from '../commands';
 import { makeItemProminent } from '../commands/make-item-prominent';
 import { removeProminentItem } from '../commands/remove-prominent-item';
 import {
@@ -170,7 +171,10 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       else displayed = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${getMinutesWith2Digits(d.getMinutes())}`;
 
       return [{
-        action: () => item.snoozeTill = datetime,
+        action: () => {
+          item.snoozeTill = datetime;
+          if (selectedContext.value) changeFocusedItemInContext(selectedContext.value, 'down');
+        },
         title: `Snooze "${item.title}" - till ${displayed}`,
       }];
     } else if (code === 'regular') {
@@ -214,7 +218,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
 
     if (code === 'd') {
       return matchingItems.filter(item => !item.done).map(item => ({
-        action: () => toggleListItem(context, item.title),
+        action: () => toggleListItem(context, item.title, showSnoozedItems.value),
         title: `${baseTitle}: ${item.title}`,
       }));
     } else if (code === 'delitem') {
@@ -234,7 +238,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       }));
     } else if (code === 'undo') {
       return matchingItems.filter(item => item.done).map(item => ({
-        action: () => toggleListItem(context, item.title),
+        action: () => toggleListItem(context, item.title, showSnoozedItems.value),
         title: `${baseTitle}: ${item.title}`,
       }));
     } else if (code === 'unregular') {
