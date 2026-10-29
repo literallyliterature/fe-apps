@@ -260,12 +260,16 @@
           @keydown="doIfSearchEmpty($event)" />
       </div>
     </div>
+
+    <AuthModal
+      ref="authModal"
+      @update:showing-modal="showingAuthModal = $event" />
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { constArrayIncludes } from 'utils';
+import { constArrayIncludes, EventBus } from 'utils';
 import {
   computed,
   onMounted,
@@ -302,10 +306,13 @@ import {
 } from '../data/commands';
 import { useNoteTakerStore } from '../data/note-taker.store';
 import { parseDatetimeFromText } from '../data/parse-datetime-from-text.ts';
+import AuthModal from './AuthModal.vue';
 import EditAndDeleteButtons from './EditAndDeleteButtons.vue';
 
 const noteTakerStore = useNoteTakerStore();
 const { focusedItem, notFocusedOnTab, prominentItem, selectedContext, selectedPage, selectedSection, showSnoozedItems, storableNotes } = storeToRefs(noteTakerStore);
+
+const showingAuthModal = ref(false);
 
 const route = useRoute();
 noteTakerStore.mergeNotesFromQuery(route.query.notes_json ? String(route.query.notes_json) : undefined);
@@ -407,8 +414,12 @@ const specialKeys = [
   'Enter',
 ] as const;
 
+const authModal = useTemplateRef('authModal');
+
+EventBus.on('show-auth', () => authModal.value?.showModal());
+
 function actionBasedOnSpecialEventKey(evt: KeyboardEvent) {
-  if (!constArrayIncludes(specialKeys, evt.key)) return;
+  if (!constArrayIncludes(specialKeys, evt.key) || showingAuthModal.value) return;
 
   evt.preventDefault();
   evt.stopPropagation();

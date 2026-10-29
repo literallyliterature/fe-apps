@@ -45,6 +45,7 @@ export const sectionSpecificCodeTitles = {
 };
 
 export const generalCodeTitles = {
+  auth: 'Show auth details',
   delsection: 'Delete section',
   editsection: 'Edit section',
   export: 'Export JSON to clipboard',

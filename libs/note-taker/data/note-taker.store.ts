@@ -4,6 +4,7 @@ import {
   checkIfStringsMatch,
   constArrayIncludes,
   constObjectKeys,
+  EventBus,
 } from 'utils';
 import { computed, ref } from 'vue';
 
@@ -458,6 +459,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     }
 
     const titleMappingsWithRest: Record<typeof code, string | undefined> = {
+      auth: trimmedRest ? undefined : baseTitle,
       export: trimmedRest ? undefined : baseTitle,
       help: trimmedRest ? undefined : baseTitle,
       import: trimmedRest ? undefined : baseTitle,
@@ -470,6 +472,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     if (!title) return [];
 
     const actionMapping: Record<typeof code, () => void> = {
+      auth: () => EventBus.emit('show-auth'),
       export: () => copyToClipboard(convertToExportableJSON(storableNotes.value)),
       help: showHelpAlert,
       import: () => {
