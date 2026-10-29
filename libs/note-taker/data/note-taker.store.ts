@@ -568,8 +568,6 @@ function copyToClipboard(text: string) {
   navigator.clipboard.writeText(inputElement.value);
 
   inputElement.remove();
-
-  window.alert('Copied to clipboard');
 }
 
 function loadInitialStorableNotes(): StorableNotes {
