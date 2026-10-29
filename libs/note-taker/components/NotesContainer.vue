@@ -268,8 +268,13 @@
 </template>
 
 <script setup lang="ts">
+import { throttle } from 'lodash';
 import { storeToRefs } from 'pinia';
-import { constArrayIncludes, EventBus } from 'utils';
+import {
+  constArrayIncludes,
+  EventBus,
+  updateNotesInFirebase,
+} from 'utils';
 import {
   computed,
   onMounted,
@@ -383,9 +388,15 @@ watch(selectedItem, (v) => {
   searchString.value = '';
 });
 
+const saveToFirebase = throttle(async () => {
+  updateNotesInFirebase(storableNotes.value);
+}, 5000);
+
 function storeToLocalStorage() {
   setTimeout(() => {
-    localStorage.setItem('notes_json', convertToExportableJSON(storableNotes.value));
+    const jsonNotes = convertToExportableJSON(storableNotes.value);
+    localStorage.setItem('notes_json', jsonNotes);
+    saveToFirebase();
   });
 }
 

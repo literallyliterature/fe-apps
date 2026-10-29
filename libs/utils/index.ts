@@ -1,5 +1,9 @@
 export { EventBus } from './event-bus';
-export { firebaseAuth } from './firebase-config';
+export {
+  firebaseAuth,
+  getNotesForUser,
+  updateNotesInFirebase,
+} from './firebase-config';
 export { getNextOrPrevIndex } from './get-next-or-prev-index';
 export { getCommonSubjectTests } from './test-utils';
 export {

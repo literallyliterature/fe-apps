@@ -3,9 +3,7 @@
     v-model="showingModal"
     max-width="500"
   >
-    <v-card
-      title="Auth"
-    >
+    <v-card title="Auth">
       <v-card-text>
         <div v-if="currentDetails.type === 'show-login'">
           <v-form>

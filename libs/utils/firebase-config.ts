@@ -1,3 +1,9 @@
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+} from '@firebase/firestore/lite';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
@@ -11,4 +17,27 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const firestore = getFirestore(app);
+
 export const firebaseAuth = getAuth(app);
+
+export async function getNotesForUser() {
+  const user = firebaseAuth.currentUser;
+
+  if (!user) return;
+
+  const docRef = doc(firestore, `notes/${user.uid}`);
+  return getDoc(docRef);
+}
+
+export async function updateNotesInFirebase(storableNotes: object) {
+  if (!storableNotes) return;
+
+  const user = firebaseAuth.currentUser;
+
+  if (!user) return;
+
+  const docRef = doc(firestore, `notes/${user.uid}`);
+
+  await setDoc(docRef, storableNotes);
+}

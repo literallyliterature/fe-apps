@@ -1,3 +1,6 @@
+import type { User } from 'firebase/auth';
+
+import { isEqual } from 'lodash';
 import { defineStore } from 'pinia';
 import {
   assertIsUnreachable,
@@ -5,6 +8,8 @@ import {
   constArrayIncludes,
   constObjectKeys,
   EventBus,
+  firebaseAuth,
+  getNotesForUser,
 } from 'utils';
 import { computed, ref } from 'vue';
 
@@ -96,6 +101,20 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
       }
     }
     return undefined;
+  });
+
+  const loggedInUser = ref<null | User>(null);
+  firebaseAuth.onAuthStateChanged(async (updatedUser) => {
+    loggedInUser.value = updatedUser;
+
+    if (updatedUser) {
+      const storedDoc = await getNotesForUser();
+      const storedNotes = storedDoc?.data();
+
+      if (storedNotes && !isEqual(storedNotes, storableNotes.value)) {
+        storableNotes.value = mergeStorableNotes(storableNotes.value, JSON.stringify(storedNotes));
+      }
+    }
   });
 
   const showSnoozedItems = ref(false);
