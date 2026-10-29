@@ -162,7 +162,7 @@
                   : 'pink-lighten-1'
                 : notFocusedOnTab
                   ? 'grey-darken-1'
-                  : ''"
+                  : 'grey-darken-3'"
               :style="notFocusedOnTab ? 'opacity: 0.9' : ''"
               variant="outlined"
             >
@@ -207,7 +207,7 @@
                     >
                       <template #label="{ label }">
                         <div
-                          :class="{ 'font-weight-bold': item === grid.focusedItem }"
+                          :class="{ 'font-weight-bold': item.title === context.focusedItemTitle }"
                           class="my-2 text-body-medium"
                         >
                           {{ label }}
