@@ -572,6 +572,7 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
     copyToClipboard,
     focusedItem,
     getSearchItems,
+    loggedInUser,
     mergeNotesFromQuery,
     notFocusedOnTab,
     prominentItem,
