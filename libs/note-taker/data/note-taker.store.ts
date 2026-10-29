@@ -310,6 +310,13 @@ export const useNoteTakerStore = defineStore('note-taker', () => {
         action: () => deleteContextFromPage(context.title, page),
         title: `${baseTitle}: ${context.title}`,
       }));
+    } else if (code === 'copy') {
+      return [{
+        action: () => page.prominentItemTitle
+          ? copyToClipboard(page.prominentItemTitle)
+          : undefined,
+        title: baseTitle,
+      }];
     } else if (code === 'editcontext') {
       return matchingContexts.map(context => ({
         action: () => editTitle(context, page.contexts),

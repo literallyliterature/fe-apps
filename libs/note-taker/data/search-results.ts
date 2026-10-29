@@ -25,6 +25,7 @@ export const itemSpecificCodeTitles = {
 
 export const pageSpecificCodeTitles = {
   c: 'Select context',
+  copy: 'Copy active item title',
   delcontext: 'Delete context',
   editcontext: 'Edit context',
   nc: 'New context - todo',
